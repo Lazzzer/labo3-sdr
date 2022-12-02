@@ -1,3 +1,3 @@
-module github.com/Lazzzer/labo1-sdr
+module github.com/Lazzzer/labo3-sdr
 
 go 1.19
