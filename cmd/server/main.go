@@ -2,8 +2,9 @@ package main
 
 import (
 	_ "embed"
+	"flag"
 	"log"
-	"os"
+	"strconv"
 
 	"github.com/Lazzzer/labo3-sdr/internal/server"
 	"github.com/Lazzzer/labo3-sdr/internal/shared"
@@ -13,12 +14,22 @@ import (
 var config string
 
 func main() {
-	if len(os.Args) > 1 {
-		log.Fatal("You should not pass any arguments") // TODO: Server need at least one argument (its number)
+	flag.Parse()
+	if flag.Arg(0) == "" {
+		log.Fatal("Invalid argument, usage: <server number>")
+	}
+
+	number, err := strconv.Atoi(flag.Arg(0))
+	if err != nil {
+		log.Fatal("Invalid argument, usage: <server number>")
 	}
 
 	configuration := shared.ParseConfig(config)
 
-	serv := server.Server{Address: configuration.Servers[1], Servers: configuration.Servers}
+	if number > len(configuration.Servers) || number < 0 {
+		log.Fatal("Invalid server number")
+	}
+
+	serv := server.Server{Address: configuration.Servers[number], Servers: configuration.Servers}
 	serv.Run()
 }
