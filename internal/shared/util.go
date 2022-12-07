@@ -4,20 +4,18 @@
 package shared
 
 import (
-	_ "embed"
 	"encoding/json"
-	"fmt"
-	"go/types"
+	"log"
+
+	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 )
 
-func Parse(content string) *types.Config {
+func ParseConfig(configStr string) *types.Config {
 	var config types.Config
 
-	err := json.Unmarshal([]byte(content), &config)
-
+	err := json.Unmarshal([]byte(configStr), &config)
 	if err != nil {
-		fmt.Println(err)
-		panic("Error: Could not parse object")
+		log.Fatal(err)
 	}
 
 	return &config

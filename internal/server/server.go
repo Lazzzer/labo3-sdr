@@ -12,7 +12,7 @@ import (
 
 type Server struct {
 	Address   string
-	Addresses []string
+	Addresses map[int]string
 }
 
 func (s *Server) Run() {
@@ -21,14 +21,12 @@ func (s *Server) Run() {
 		log.Fatal(err)
 	}
 
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	connection, err := net.ListenUDP("udp4", udpAddr)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	log.Printf("UDP server up and listening on address " + s.Address)
 
 	defer connection.Close()
 	buffer := make([]byte, 1024)
@@ -40,7 +38,7 @@ func (s *Server) Run() {
 			log.Fatal(err)
 		}
 
-		fmt.Print("-> ", string(buffer[0:n-1]))
+		fmt.Print(addr.String(), " -> ", string(buffer[0:n-1]))
 
 		if strings.TrimSpace(string(buffer[0:n])) == "STOP" {
 			fmt.Println("Exiting UDP server!")

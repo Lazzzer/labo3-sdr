@@ -2,13 +2,14 @@ package main
 
 import (
 	_ "embed"
-	"github.com/Lazzzer/labo3-sdr/internal/client"
-	"github.com/Lazzzer/labo3-sdr/internal/shared"
 	"log"
 	"os"
+
+	"github.com/Lazzzer/labo3-sdr/internal/client"
+	"github.com/Lazzzer/labo3-sdr/internal/shared"
 )
 
-//embed config.json
+//go:embed config.json
 var config string
 
 func main() {
@@ -16,8 +17,8 @@ func main() {
 		log.Fatal("You should not pass any arguments")
 	}
 
-	configuration := shared.Parse(config)
+	configuration := shared.ParseConfig(config)
 
-	cl := client.Client{Address: "localhost", Addresses: configuration.Addresses}
+	cl := client.Client{Address: configuration.Servers[1], Addresses: configuration.Servers}
 	cl.Run()
 }

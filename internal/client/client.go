@@ -11,7 +11,7 @@ import (
 
 type Client struct {
 	Address   string
-	Addresses []string
+	Addresses map[int]string
 }
 
 func (c *Client) Run() {
