@@ -11,8 +11,8 @@ import (
 )
 
 type Server struct {
-	Address   string
-	Addresses map[int]string
+	Address string
+	Servers map[int]string
 }
 
 func (s *Server) Run() {

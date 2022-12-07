@@ -14,11 +14,11 @@ var config string
 
 func main() {
 	if len(os.Args) > 1 {
-		log.Fatal("You should not pass any arguments")
+		log.Fatal("You should not pass any arguments") // TODO: Server need at least one argument (its number)
 	}
 
 	configuration := shared.ParseConfig(config)
 
-	serv := server.Server{Address: configuration.Servers[1], Addresses: configuration.Servers}
+	serv := server.Server{Address: configuration.Servers[1], Servers: configuration.Servers}
 	serv.Run()
 }
