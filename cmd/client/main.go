@@ -7,6 +7,7 @@ import (
 
 	"github.com/Lazzzer/labo3-sdr/internal/client"
 	"github.com/Lazzzer/labo3-sdr/internal/shared"
+	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 )
 
 //go:embed config.json
@@ -17,7 +18,10 @@ func main() {
 		log.Fatal("You should not pass any arguments") // TODO: Maybe useless?
 	}
 
-	configuration := shared.ParseConfig(config)
+	configuration, err := shared.Parse[types.Config](config)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	cl := client.Client{Servers: configuration.Servers}
 	cl.Run()

@@ -8,6 +8,7 @@ import (
 
 	"github.com/Lazzzer/labo3-sdr/internal/server"
 	"github.com/Lazzzer/labo3-sdr/internal/shared"
+	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 )
 
 //go:embed config.json
@@ -24,12 +25,15 @@ func main() {
 		log.Fatal("Invalid argument, usage: <server number>")
 	}
 
-	configuration := shared.ParseConfig(config)
+	configuration, err := shared.Parse[types.Config](config)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	if number > len(configuration.Servers) || number < 0 {
 		log.Fatal("Invalid server number")
 	}
 
-	serv := server.Server{Address: configuration.Servers[number], Servers: configuration.Servers}
+	serv := server.Server{Number: number, Address: configuration.Servers[number], Servers: configuration.Servers}
 	serv.Run()
 }

@@ -3,19 +3,44 @@ package server
 import (
 	"fmt"
 	"log"
-	"math/rand"
 	"net"
 	"strconv"
-	"strings"
-	"time"
+
+	"github.com/Lazzzer/labo3-sdr/internal/shared"
+	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 )
 
 type Server struct {
+	Number  int
 	Address string
 	Servers map[int]string
 }
 
+func handleCommand(commandStr string) (string, error) {
+	command, err := shared.Parse[types.Command](commandStr)
+	if err != nil || command.Type == "" {
+		return "", fmt.Errorf("invalid command")
+	}
+
+	log.Println(command)
+
+	return "command", nil
+}
+
+func handleMessage(messageStr string) (string, error) {
+	message, err := shared.Parse[types.Message](messageStr)
+	if err != nil || message.Type == "" {
+		return "", fmt.Errorf("invalid message")
+	}
+
+	log.Println(message)
+
+	return "message", nil
+}
+
 func (s *Server) Run() {
+	// value := 0
+
 	udpAddr, err := net.ResolveUDPAddr("udp4", s.Address)
 	if err != nil {
 		log.Fatal(err)
@@ -25,12 +50,11 @@ func (s *Server) Run() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	log.Printf("UDP server up and listening on address " + s.Address)
-
 	defer connection.Close()
+
+	log.Printf("Server #" + strconv.Itoa(s.Number) + " listening on address " + s.Address)
+
 	buffer := make([]byte, 1024)
-	rand.Seed(time.Now().Unix())
 
 	for {
 		n, addr, err := connection.ReadFromUDP(buffer)
@@ -38,16 +62,19 @@ func (s *Server) Run() {
 			log.Fatal(err)
 		}
 
-		fmt.Print(addr.String(), " -> ", string(buffer[0:n-1]))
+		communication := string(buffer[0 : n-1])
+		log.Println(addr.String(), " -> ", communication)
 
-		if strings.TrimSpace(string(buffer[0:n])) == "STOP" {
-			fmt.Println("Exiting UDP server!")
-			return
+		response, err := handleMessage(communication)
+		if err != nil {
+			response, err = handleCommand(communication)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
-		data := []byte(strconv.Itoa(101))
-		fmt.Printf("data: %s\n", string(data))
-		_, err = connection.WriteToUDP(data, addr)
+		fmt.Printf("data: %s\n", string(response))
+		_, err = connection.WriteToUDP([]byte(response), addr)
 		if err != nil {
 			log.Fatal(err)
 		}

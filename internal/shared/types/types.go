@@ -12,7 +12,7 @@ const (
 	ERROR LogType = "ERROR"
 )
 
-type CommandType string // TODO: Maybe rename to ClientCommandType if we add server commands?
+type CommandType string
 
 const (
 	Add  CommandType = "add"
@@ -23,6 +23,17 @@ const (
 )
 
 type Command struct {
-	Type  CommandType `json:"type"`            // Type de la commande
+	Type  CommandType `json:"command_type"`    // Type de la commande
 	Value *int        `json:"value,omitempty"` // Valeur à ajouter
+}
+
+type MessageType string
+
+const (
+	REQ MessageType = "REQ" // Requête
+)
+
+type Message struct {
+	Type MessageType `json:"message_type"` // Type du message
+	From int         `json:"from"`         // Numéro du serveur qui a envoyé le message
 }

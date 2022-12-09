@@ -5,18 +5,17 @@ package shared
 
 import (
 	"encoding/json"
-	"log"
 
 	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 )
 
-func ParseConfig(configStr string) *types.Config {
-	var config types.Config
+func Parse[T types.Config | types.Command | types.Message](jsonStr string) (*T, error) {
+	var object T
 
-	err := json.Unmarshal([]byte(configStr), &config)
+	err := json.Unmarshal([]byte(jsonStr), &object)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	return &config
+	return &object, nil
 }

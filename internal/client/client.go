@@ -4,12 +4,13 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 	"log"
 	"net"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 )
 
 type Client struct {
@@ -64,41 +65,38 @@ func processInput(input string, c *Client) (string, string, error) {
 	if args[0] == string(types.Quit) {
 		running = false
 		return "", "", fmt.Errorf("client quitting program")
-	}
-
-	// Vérification du numéro du serveur
-	var srvNumber int
-	var command types.Command
-	if srvNumber, err := strconv.Atoi(args[0]); err != nil || srvNumber < 1 && srvNumber > len(c.Servers) {
-		return "", "", fmt.Errorf("invalid server number")
+		// TODO: Refactor, should not return an error, we can reuse ctrl+c logic with a signal channel
 	}
 
 	if len(args) < 2 {
 		return "", "", fmt.Errorf("missing command")
 	}
 
+	// Vérification du numéro du serveur
+	srvNumber, err := strconv.Atoi(args[0])
+	if err != nil || srvNumber < 1 || srvNumber > len(c.Servers) {
+		return "", "", fmt.Errorf("invalid server number")
+	}
+
 	// Vérification de la commande
-	command.Value = nil
+	command := types.Command{Value: nil}
 	switch args[1] {
 	case string(types.Add):
 		if len(args) != 3 {
 			return "", "", fmt.Errorf("invalid add command")
 		}
-		if charge, err := strconv.Atoi(args[2]); err == nil && charge > 0 {
-			command.Type = types.Add
-			command.Value = &charge
-		} else {
+		value, err := strconv.Atoi(args[2])
+		if err != nil || value <= 0 {
 			return "", "", fmt.Errorf("invalid add command")
 		}
+		command.Type = types.Add
+		command.Value = &value
 	case string(types.Ask):
 		command.Type = types.Ask
-
 	case string(types.New):
 		command.Type = types.New
-
 	case string(types.Stop):
 		command.Type = types.Stop
-
 	default:
 		return "", "", fmt.Errorf("unknown command")
 	}
