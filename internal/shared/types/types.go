@@ -19,10 +19,10 @@ const (
 	Ask  CommandType = "ask"
 	New  CommandType = "new"
 	Stop CommandType = "stop"
+	Quit CommandType = "quit"
 )
 
 type Command struct {
-	Type   CommandType `json:"type"`            // Type de la commande
-	Server int         `json:"server"`          // Numéro du serveur
-	Value  *int        `json:"value,omitempty"` // Valeur à ajouter
+	Type  CommandType `json:"type"`            // Type de la commande
+	Value *int        `json:"value,omitempty"` // Valeur à ajouter
 }
