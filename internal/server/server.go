@@ -5,37 +5,12 @@ import (
 	"log"
 	"net"
 	"strconv"
-
-	"github.com/Lazzzer/labo3-sdr/internal/shared"
-	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 )
 
 type Server struct {
 	Number  int
 	Address string
 	Servers map[int]string
-}
-
-func handleCommand(commandStr string) (string, error) {
-	command, err := shared.Parse[types.Command](commandStr)
-	if err != nil || command.Type == "" {
-		return "", fmt.Errorf("invalid command")
-	}
-
-	log.Println(command)
-
-	return "command", nil
-}
-
-func handleMessage(messageStr string) (string, error) {
-	message, err := shared.Parse[types.Message](messageStr)
-	if err != nil || message.Type == "" {
-		return "", fmt.Errorf("invalid message")
-	}
-
-	log.Println(message)
-
-	return "message", nil
 }
 
 func (s *Server) Run() {

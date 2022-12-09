@@ -39,7 +39,6 @@ func (c *Client) Run() {
 		sendCommand(command, servAddr)
 	}
 	fmt.Println("Good bye!")
-	//TODO: close connection
 }
 
 func displayPrompt() {
@@ -127,6 +126,7 @@ func sendCommand(command string, address string) {
 		log.Fatal(err)
 	}
 
+	// TODO : handle timeout (>= 1s means server is down)
 	buffer := make([]byte, 1024)
 	n, servAddr, err := connection.ReadFromUDP(buffer)
 	if err != nil {
