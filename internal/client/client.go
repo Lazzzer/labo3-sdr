@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"github.com/Lazzzer/labo3-sdr/internal/shared"
+	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 	"log"
 	"net"
 	"os"
@@ -11,9 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
-
-	"github.com/Lazzzer/labo3-sdr/internal/shared"
-	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
+	"time"
 )
 
 type Client struct {
@@ -147,11 +147,20 @@ func sendCommand(command string, address string) {
 	}
 
 	buffer := make([]byte, 1024)
+	go closeAfterTimeout(connection)
 	n, servAddr, err := connection.ReadFromUDP(buffer)
+
 	if err != nil {
 		fmt.Println(shared.RED + "Server @" + udpAddr.String() + " is unreachable" + shared.RESET)
 		return
 	}
 
 	fmt.Println(shared.GREEN + "Server @" + servAddr.String() + " -> " + string(buffer[0:n]) + shared.RESET)
+}
+
+func closeAfterTimeout(c *net.UDPConn) {
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+	}
+	c.Close()
 }
