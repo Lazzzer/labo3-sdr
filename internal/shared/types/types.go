@@ -30,10 +30,17 @@ type Command struct {
 type MessageType string
 
 const (
-	REQ MessageType = "REQ" // Requête
+	Ann MessageType = "announcement" // Annonce
+	Res MessageType = "result"       // Résultat d'une élection
 )
 
+type Process struct {
+	Number int  `json:"number"`          // Numéro du processus
+	Value  *int `json:"value,omitempty"` // Valeur de la charge du processus
+}
+
 type Message struct {
-	Type MessageType `json:"message_type"` // Type du message
-	From int         `json:"from"`         // Numéro du serveur qui a envoyé le message
+	Type      MessageType `json:"message_type"`      // Type du message
+	Elected   *int        `json:"elected,omitempty"` // Numéro du processus élu
+	Processes []Process   `json:"processes"`         // Liste des processus
 }

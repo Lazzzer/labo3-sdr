@@ -37,7 +37,7 @@ func (c *Client) Run() {
 			continue
 		}
 
-		sendCommand(command, servAddr)
+		go sendCommand(command, servAddr)
 	}
 	fmt.Println("Good bye!")
 }
@@ -109,7 +109,6 @@ func processInput(input string, c *Client) (string, string, error) {
 	}
 }
 
-// TODO: Change log.Fatal to shared.Log with an early return?
 func sendCommand(command string, address string) {
 	udpAddr, err := net.ResolveUDPAddr("udp4", address)
 	if err != nil {
@@ -118,20 +117,22 @@ func sendCommand(command string, address string) {
 
 	connection, err := net.DialUDP("udp4", nil, udpAddr)
 	if err != nil {
-		log.Fatal(err)
+		shared.Log(types.ERROR, err.Error())
+		return
 	}
 	defer connection.Close()
 
 	_, err = connection.Write([]byte(command + "\n"))
 	if err != nil {
-		log.Fatal(err)
+		shared.Log(types.ERROR, err.Error())
+		return
 	}
 
-	// TODO : handle timeout (>= 1s means server is down)
 	buffer := make([]byte, 1024)
 	n, servAddr, err := connection.ReadFromUDP(buffer)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(shared.RED + "Server @" + udpAddr.String() + " is unreachable" + shared.RESET)
+		return
 	}
 
 	fmt.Println(shared.GREEN + "Server @" + servAddr.String() + " -> " + string(buffer[0:n]) + shared.RESET)

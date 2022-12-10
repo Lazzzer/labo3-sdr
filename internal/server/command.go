@@ -36,5 +36,5 @@ func handleAsk() {
 }
 
 func handleNew() {
-	// TODO: handle new command
+	startElection()
 }
