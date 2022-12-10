@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Lazzzer/labo3-sdr/internal/shared"
 	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 )
 
@@ -26,13 +27,13 @@ func (c *Client) Run() {
 		displayPrompt()
 		input, err := reader.ReadString('\n')
 		if err != nil {
-			log.Println(err)
+			shared.Log(types.ERROR, err.Error())
 			continue
 		}
 
 		command, servAddr, err := processInput(input, c)
 		if err != nil {
-			log.Println(err)
+			shared.Log(types.ERROR, err.Error())
 			continue
 		}
 
@@ -108,8 +109,8 @@ func processInput(input string, c *Client) (string, string, error) {
 	}
 }
 
+// TODO: Change log.Fatal to shared.Log with an early return?
 func sendCommand(command string, address string) {
-
 	udpAddr, err := net.ResolveUDPAddr("udp4", address)
 	if err != nil {
 		log.Fatal(err)
@@ -132,5 +133,6 @@ func sendCommand(command string, address string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("%s sent: %s\n", servAddr.String(), string(buffer[0:n]))
+
+	fmt.Println(shared.GREEN + "Server @" + servAddr.String() + " -> " + string(buffer[0:n]) + shared.RESET)
 }

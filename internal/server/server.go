@@ -1,10 +1,12 @@
 package server
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"strconv"
+
+	"github.com/Lazzzer/labo3-sdr/internal/shared"
+	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 )
 
 type Server struct {
@@ -27,31 +29,31 @@ func (s *Server) Run() {
 	}
 	defer connection.Close()
 
-	log.Printf("Server #" + strconv.Itoa(s.Number) + " listening on address " + s.Address)
-
+	shared.Log(types.INFO, shared.GREEN+"Server #"+strconv.Itoa(s.Number)+" listening on "+s.Address+shared.RESET)
 	buffer := make([]byte, 1024)
 
 	for {
 		n, addr, err := connection.ReadFromUDP(buffer)
 		if err != nil {
-			log.Fatal(err)
+			shared.Log(types.ERROR, err.Error())
+			continue
 		}
 
 		communication := string(buffer[0 : n-1])
-		log.Println(addr.String(), " -> ", communication)
+		shared.Log(types.INFO, shared.YELLOW+addr.String()+" -> "+communication+shared.RESET)
 
 		response, err := handleMessage(communication)
 		if err != nil {
 			response, err = handleCommand(communication)
 			if err != nil {
-				log.Fatal(err)
+				shared.Log(types.ERROR, err.Error())
+				continue
 			}
 		}
 
-		fmt.Printf("data: %s\n", string(response))
 		_, err = connection.WriteToUDP([]byte(response), addr)
 		if err != nil {
-			log.Fatal(err)
+			shared.Log(types.ERROR, err.Error())
 		}
 	}
 }
