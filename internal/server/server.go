@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"log"
 	"net"
 	"strconv"
@@ -15,11 +16,11 @@ type Server struct {
 	Servers map[int]string
 }
 
-var process types.Process // Processus courant du serveur
-var nbProcesses int       // Nombre de processus dans le réseau
-var processNumber int     // Numéro du processus courant
-var value int = 0         // Valeur de la charge du processus courant
-var elected *int = nil    // Numéro du processus élu
+var process types.Process           // Processus courant du serveur
+var nbProcesses int                 // Nombre de processus dans le réseau
+var processNumber int               // Numéro du processus courant
+var electionState types.MessageType // État de l'élection
+var elected int = -1                // Numéro du processus élu
 
 func (s *Server) Run() {
 	s.setupProcessValue()
@@ -37,7 +38,7 @@ func (s *Server) setupProcessValue() {
 
 	processNumber = s.Number - 1
 
-	process = types.Process{Number: processNumber, Value: &value}
+	process = types.Process{Number: processNumber, Value: 0}
 }
 
 func (s *Server) startListening() *net.UDPConn {
@@ -66,29 +67,59 @@ func (s *Server) handleCommunications(connection *net.UDPConn) {
 		communication := string(buffer[0 : n-1])
 		shared.Log(types.INFO, shared.YELLOW+addr.String()+" -> "+communication+shared.RESET)
 
-		response, err := handleMessage(communication)
+		resSrv, err := handleMessage(communication)
 		if err != nil {
 			// Traitement d'une commande si le message n'est pas valide
-			response, err = handleCommand(communication)
+			resClient, err := s.handleCommand(communication)
 			if err != nil {
 				shared.Log(types.ERROR, err.Error())
 				continue
 			}
 			// Envoi de la réponse à l'adresse du client
-			_, err = connection.WriteToUDP([]byte(response), addr)
+			_, err = connection.WriteToUDP([]byte(resClient), addr)
 			if err != nil {
 				shared.Log(types.ERROR, err.Error())
 			}
 			continue
 		}
 		// Si le message est valide, Envoie de la réponse au processus suivant (au premier si le processus courant est le dernier)
-		udpAddr, err := net.ResolveUDPAddr("udp4", s.Servers[s.Number%nbProcesses])
-		if err != nil {
-			log.Fatal(err)
-		}
-		_, err = connection.WriteToUDP([]byte(response), udpAddr)
+		err = s.sendMessage([]byte(resSrv))
 		if err != nil {
 			shared.Log(types.ERROR, err.Error())
 		}
 	}
+}
+
+func (s *Server) sendMessage(message []byte) error {
+
+	udpAddr, err := net.ResolveUDPAddr("udp4", s.Servers[s.Number%nbProcesses])
+	if err != nil {
+		return err
+	}
+	connection, err := net.DialUDP("udp", nil, udpAddr)
+	if err != nil {
+		return err
+	}
+	_, err = connection.Write(message)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Server) startElection() {
+	shared.Log(types.INFO, shared.PINK+"Starting election"+shared.RESET)
+
+	processes := make([]types.Process, 0)
+	processes = append(processes, process)
+	message := types.Message{Type: types.Ann, Processes: processes}
+
+	messageJson, err := json.Marshal(message)
+	if err != nil {
+		shared.Log(types.ERROR, err.Error())
+		return
+	}
+
+	s.sendMessage(messageJson)
+	electionState = types.Ann
 }
