@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/Lazzzer/labo3-sdr/internal/shared"
 	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
@@ -13,6 +14,14 @@ func (s *Server) handleCommand(commandStr string) (string, error) {
 	if err != nil || command.Type == "" {
 		return "", fmt.Errorf("invalid command")
 	}
+
+	stringToLog := "GOT => Type: " + string(command.Type)
+
+	if command.Type == types.Add {
+		stringToLog += ", Value: " + strconv.Itoa(*command.Value)
+	}
+
+	shared.Log(types.COMMAND, stringToLog)
 
 	switch command.Type {
 	case types.Add:

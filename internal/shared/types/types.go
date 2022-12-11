@@ -8,8 +8,10 @@ type Config struct {
 type LogType string
 
 const (
-	INFO  LogType = "INFO"
-	ERROR LogType = "ERROR"
+	INFO    LogType = "INFO"
+	ERROR   LogType = "ERROR"
+	MESSAGE LogType = "MESSAGE"
+	COMMAND LogType = "COMMAND"
 )
 
 type CommandType string

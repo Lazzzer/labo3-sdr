@@ -28,6 +28,10 @@ func Log(logType types.LogType, message string) {
 		log.Println(CYAN + "(INFO) " + RESET + message)
 	case types.ERROR:
 		log.Println(RED + "(ERROR) " + RESET + message)
+	case types.MESSAGE:
+		log.Println(ORANGE + "(MESSAGE) " + RESET + message)
+	case types.COMMAND:
+		log.Println(YELLOW + "(COMMAND) " + RESET + message)
 	}
 }
 

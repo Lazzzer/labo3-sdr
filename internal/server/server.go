@@ -1,7 +1,6 @@
 package server
 
 import (
-	"encoding/json"
 	"log"
 	"net"
 	"strconv"
@@ -28,7 +27,7 @@ func (s *Server) Run() {
 	connection := s.startListening()
 	defer connection.Close()
 
-	shared.Log(types.INFO, shared.GREEN+"Server #"+strconv.Itoa(s.Number)+" listening on "+s.Address+shared.RESET)
+	shared.Log(types.INFO, shared.GREEN+"Server #"+strconv.Itoa(s.Number)+" as Process P"+strconv.Itoa(process.Number)+" listening on "+s.Address+shared.RESET)
 
 	s.handleCommunications(connection)
 }
@@ -64,9 +63,7 @@ func (s *Server) handleCommunications(connection *net.UDPConn) {
 			continue
 		}
 
-		communication := string(buffer[0 : n-1])
-		shared.Log(types.INFO, shared.YELLOW+addr.String()+" -> "+communication+shared.RESET)
-
+		communication := string(buffer[0:n])
 		err = s.handleMessage(communication)
 		if err != nil {
 			// Traitement d'une commande si le message n'est pas valide
@@ -82,43 +79,4 @@ func (s *Server) handleCommunications(connection *net.UDPConn) {
 			}
 		}
 	}
-}
-
-func (s *Server) sendMessage(message string) error {
-
-	destServer := s.Number + 1
-	if destServer > nbProcesses {
-		destServer = 1
-	}
-
-	destUdpAddr, err := net.ResolveUDPAddr("udp4", s.Servers[destServer])
-	if err != nil {
-		return err
-	}
-	connection, err := net.DialUDP("udp", nil, destUdpAddr)
-	if err != nil {
-		return err
-	}
-	_, err = connection.Write([]byte(message + "\n"))
-	if err != nil {
-		return err
-	}
-	shared.Log(types.INFO, shared.CYAN+"Process "+strconv.Itoa(process.Number)+" to Process "+strconv.Itoa(destServer-1)+" => "+string(message)+shared.RESET)
-	return nil
-}
-
-func (s *Server) startElection() {
-	shared.Log(types.INFO, shared.PINK+"Starting election"+shared.RESET)
-
-	processes := append(make([]types.Process, 0), process)
-	message := types.Message{Type: types.Ann, Processes: processes}
-
-	messageJson, err := json.Marshal(message)
-	if err != nil {
-		shared.Log(types.ERROR, err.Error())
-		return
-	}
-
-	s.sendMessage(string(messageJson))
-	electionState = types.Ann
 }
