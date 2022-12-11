@@ -110,8 +110,7 @@ func (s *Server) sendMessage(message string) error {
 func (s *Server) startElection() {
 	shared.Log(types.INFO, shared.PINK+"Starting election"+shared.RESET)
 
-	processes := make([]types.Process, 0)
-	processes = append(processes, process)
+	processes := append(make([]types.Process, 0), process)
 	message := types.Message{Type: types.Ann, Processes: processes}
 
 	messageJson, err := json.Marshal(message)

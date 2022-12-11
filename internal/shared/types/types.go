@@ -40,7 +40,7 @@ type Process struct {
 }
 
 type Message struct {
-	Type      MessageType `json:"message_type"`      // Type du message
-	Elected   int         `json:"elected,omitempty"` // Numéro du processus élu
-	Processes []Process   `json:"processes"`         // Liste des processus
+	Type      MessageType `json:"message_type"` // Type du message
+	Elected   int         `json:"elected"`      // Numéro du processus élu
+	Processes []Process   `json:"processes"`    // Liste des processus
 }

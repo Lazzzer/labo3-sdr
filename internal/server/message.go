@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/Lazzzer/labo3-sdr/internal/shared"
 	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
@@ -19,7 +20,7 @@ func (s *Server) handleMessage(messageStr string) error {
 	case types.Ann:
 		s.handleAnn(message)
 	case types.Res:
-		handleRes(message)
+		s.handleRes(message)
 	}
 
 	return nil
@@ -27,16 +28,16 @@ func (s *Server) handleMessage(messageStr string) error {
 
 func (s *Server) handleAnn(message *types.Message) {
 	var messageToSend types.Message
-	isInList := false
+	isProcessInlist := false
 
 	for _, p := range message.Processes {
 		if process == p {
-			isInList = true
+			isProcessInlist = true
 			break
 		}
 	}
 
-	if isInList {
+	if isProcessInlist {
 		elected = getNbProcessWithMinValue(&message.Processes)
 
 		processes := make([]types.Process, 0)
@@ -45,8 +46,45 @@ func (s *Server) handleAnn(message *types.Message) {
 		electionState = types.Res
 	} else {
 		processes := append(message.Processes, process)
-		messageToSend = types.Message{Type: types.Ann, Processes: processes}
+		messageToSend = types.Message{Type: types.Ann, Elected: -1, Processes: processes}
 		electionState = types.Ann
+	}
+
+	messageJson, err := json.Marshal(messageToSend)
+	if err != nil {
+		shared.Log(types.ERROR, "Error while marshalling message")
+	}
+
+	err = s.sendMessage(string(messageJson))
+	if err != nil {
+		shared.Log(types.ERROR, "Error while sending message")
+	}
+}
+
+func (s *Server) handleRes(message *types.Message) {
+	var messageToSend types.Message
+	isProcessInlist := false
+
+	for _, p := range message.Processes {
+		if process == p {
+			isProcessInlist = true
+			break
+		}
+	}
+
+	if isProcessInlist {
+		return
+	}
+
+	if electionState == types.Res && elected != processNumber {
+		processes := append(make([]types.Process, 0), process)
+		messageToSend = types.Message{Type: types.Ann, Elected: -1, Processes: processes}
+		electionState = types.Ann
+	} else if electionState == types.Ann {
+		elected = message.Elected
+		shared.Log(types.INFO, shared.PINK+"Elected process: "+strconv.Itoa(elected)+shared.RESET)
+		processes := append(message.Processes, process)
+		messageToSend = types.Message{Type: types.Res, Elected: elected, Processes: processes}
 	}
 
 	messageJson, err := json.Marshal(messageToSend)
@@ -72,8 +110,4 @@ func getNbProcessWithMinValue(processes *[]types.Process) int {
 	}
 
 	return minProcessNumber
-}
-
-func handleRes(message *types.Message) {
-	// TODO: handle res message
 }
