@@ -4,8 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"github.com/Lazzzer/labo3-sdr/internal/shared"
-	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 	"log"
 	"net"
 	"os"
@@ -14,6 +12,9 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/Lazzzer/labo3-sdr/internal/shared"
+	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 )
 
 type Client struct {
@@ -52,7 +53,7 @@ func (c *Client) Run() {
 			continue
 		}
 
-		go sendCommand(command, servAddr)
+		sendCommand(command, servAddr)
 	}
 }
 
