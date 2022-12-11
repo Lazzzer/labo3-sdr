@@ -35,8 +35,8 @@ const (
 )
 
 type Process struct {
-	Number int `json:"number"`          // Numéro du processus
-	Value  int `json:"value,omitempty"` // Valeur de la charge du processus
+	Number int `json:"number"` // Numéro du processus
+	Value  int `json:"value"`  // Valeur de la charge du processus
 }
 
 type Message struct {

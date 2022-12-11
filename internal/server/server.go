@@ -67,43 +67,43 @@ func (s *Server) handleCommunications(connection *net.UDPConn) {
 		communication := string(buffer[0 : n-1])
 		shared.Log(types.INFO, shared.YELLOW+addr.String()+" -> "+communication+shared.RESET)
 
-		resSrv, err := handleMessage(communication)
+		err = s.handleMessage(communication)
 		if err != nil {
 			// Traitement d'une commande si le message n'est pas valide
-			resClient, err := s.handleCommand(communication)
+			response, err := s.handleCommand(communication)
 			if err != nil {
 				shared.Log(types.ERROR, err.Error())
 				continue
 			}
 			// Envoi de la réponse à l'adresse du client
-			_, err = connection.WriteToUDP([]byte(resClient), addr)
+			_, err = connection.WriteToUDP([]byte(response), addr)
 			if err != nil {
 				shared.Log(types.ERROR, err.Error())
 			}
-			continue
-		}
-		// Si le message est valide, Envoie de la réponse au processus suivant (au premier si le processus courant est le dernier)
-		err = s.sendMessage([]byte(resSrv))
-		if err != nil {
-			shared.Log(types.ERROR, err.Error())
 		}
 	}
 }
 
-func (s *Server) sendMessage(message []byte) error {
+func (s *Server) sendMessage(message string) error {
 
-	udpAddr, err := net.ResolveUDPAddr("udp4", s.Servers[s.Number%nbProcesses])
+	destServer := s.Number + 1
+	if destServer > nbProcesses {
+		destServer = 1
+	}
+
+	destUdpAddr, err := net.ResolveUDPAddr("udp4", s.Servers[destServer])
 	if err != nil {
 		return err
 	}
-	connection, err := net.DialUDP("udp", nil, udpAddr)
+	connection, err := net.DialUDP("udp", nil, destUdpAddr)
 	if err != nil {
 		return err
 	}
-	_, err = connection.Write(message)
+	_, err = connection.Write([]byte(message + "\n"))
 	if err != nil {
 		return err
 	}
+	shared.Log(types.INFO, shared.CYAN+"Process "+strconv.Itoa(process.Number)+" to Process "+strconv.Itoa(destServer-1)+" => "+string(message)+shared.RESET)
 	return nil
 }
 
@@ -120,6 +120,6 @@ func (s *Server) startElection() {
 		return
 	}
 
-	s.sendMessage(messageJson)
+	s.sendMessage(string(messageJson))
 	electionState = types.Ann
 }
