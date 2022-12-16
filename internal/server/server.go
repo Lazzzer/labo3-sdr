@@ -21,7 +21,10 @@ var processNumber int               // Numéro du processus courant
 var electionState types.MessageType // État de l'élection
 var elected int = -1                // Numéro du processus élu
 
-func (s *Server) Run() {
+func (s *Server) Run(debug bool) {
+	if debug {
+		shared.Log(types.INFO, "Server started in debug mode"+shared.RESET)
+	}
 	s.setupProcessValue()
 
 	connection := s.startListening()

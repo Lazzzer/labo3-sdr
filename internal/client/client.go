@@ -27,9 +27,15 @@ var invalidCommand = "invalid command"
 var wrongServerNumber = "invalid server number"
 var emptyInput = "empty input"
 var chargeMustBePositive = "charge must be a positive integer"
+var timeOutValue = 7 * time.Second
 
-func (c *Client) Run() {
+func (c *Client) Run(debug bool) {
 	signal.Notify(exitChan, syscall.SIGINT)
+
+	if debug {
+		fmt.Println("Client started in debug mode")
+		timeOutValue = 10 * time.Second
+	}
 
 	go func() {
 		<-exitChan
@@ -148,7 +154,7 @@ func sendCommand(command string, address string) {
 	}
 
 	buffer := make([]byte, 1024)
-	errDeadLine := connection.SetReadDeadline(time.Now().Add(1 * time.Second))
+	errDeadLine := connection.SetReadDeadline(time.Now().Add(timeOutValue))
 	if errDeadLine != nil {
 		return
 	}

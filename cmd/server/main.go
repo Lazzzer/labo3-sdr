@@ -15,6 +15,8 @@ import (
 var config string
 
 func main() {
+
+	debug := flag.Bool("debug", false, "Boolean: Run server in debug mode. Default is false")
 	flag.Parse()
 	if flag.Arg(0) == "" {
 		log.Fatal("Invalid argument, usage: <server number>")
@@ -35,5 +37,5 @@ func main() {
 	}
 
 	serv := server.Server{Number: number, Address: configuration.Servers[number], Servers: configuration.Servers}
-	serv.Run()
+	serv.Run(*debug)
 }

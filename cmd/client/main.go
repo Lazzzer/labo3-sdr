@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "embed"
+	"flag"
 	"log"
 	"os"
 
@@ -18,11 +19,14 @@ func main() {
 		log.Fatal("You should not pass any arguments") // TODO: Maybe useless?
 	}
 
+	debug := flag.Bool("debug", false, "Boolean: Run client in debug mode. Default is false")
+	flag.Parse()
+
 	configuration, err := shared.Parse[types.Config](config)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	cl := client.Client{Servers: configuration.Servers}
-	cl.Run()
+	cl.Run(*debug)
 }
