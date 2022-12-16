@@ -27,7 +27,7 @@ func (s *Server) handleCommand(commandStr string) (string, error) {
 	case types.Add:
 		s.handleAdd(command)
 	case types.Ask:
-		s.handleAsk()
+		return s.handleAsk(), nil
 	case types.New:
 		s.handleNew()
 	case types.Stop:
@@ -37,11 +37,19 @@ func (s *Server) handleCommand(commandStr string) (string, error) {
 }
 
 func (s *Server) handleAdd(command *types.Command) {
-	// TODO: handle add command
+	if electionState == types.Ann {
+		// TODO: store for later
+	} else {
+		process.Value += *command.Value
+	}
 }
 
-func (s *Server) handleAsk() {
-	// TODO: handle ask command
+func (s *Server) handleAsk() string {
+	if electionState == types.Ann {
+		// TODO: wait for election to finish
+		return "An election is running"
+	}
+	return "Process P" + strconv.Itoa(elected) + " from Server @" + s.Servers[getNextServer(elected)] + " was elected"
 }
 
 func (s *Server) handleNew() {
