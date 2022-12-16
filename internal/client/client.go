@@ -4,8 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"github.com/Lazzzer/labo3-sdr/internal/shared"
-	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 	"log"
 	"net"
 	"os"
@@ -14,6 +12,9 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/Lazzzer/labo3-sdr/internal/shared"
+	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 )
 
 type Client struct {
@@ -123,12 +124,12 @@ func processInput(input string, c *Client) (string, string, error) {
 }
 
 func sendCommand(command string, address string) {
-	udpAddr, err := net.ResolveUDPAddr("udp4", address)
+	udpAddr, err := net.ResolveUDPAddr("udp", address)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	connection, err := net.DialUDP("udp4", nil, udpAddr)
+	connection, err := net.DialUDP("udp", nil, udpAddr)
 	if err != nil {
 		shared.Log(types.ERROR, err.Error())
 		return

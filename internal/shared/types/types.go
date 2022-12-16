@@ -46,3 +46,7 @@ type Message struct {
 	Elected   int         `json:"elected"`      // Numéro du processus élu
 	Processes []Process   `json:"processes"`    // Liste des processus
 }
+
+type Acknowledgement struct {
+	From int `json:"number"` // Numéro du processus qui a envoyé l'ack
+}

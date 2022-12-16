@@ -10,9 +10,9 @@ import (
 )
 
 type Server struct {
-	Number  int
-	Address string
-	Servers map[int]string
+	Number  int            // Numéro du serveur
+	Address string         // Adresse du serveur
+	Servers map[int]string // Map des serveurs
 }
 
 var process types.Process           // Processus courant du serveur
@@ -64,7 +64,7 @@ func (s *Server) handleCommunications(connection *net.UDPConn) {
 		}
 
 		communication := string(buffer[0:n])
-		err = s.handleMessage(communication)
+		err = s.handleMessage(connection, addr, communication)
 		if err != nil {
 			// Traitement d'une commande si le message n'est pas valide
 			response, err := s.handleCommand(communication)

@@ -6,15 +6,26 @@ import (
 	"math"
 	"net"
 	"strconv"
+	"time"
 
 	"github.com/Lazzzer/labo3-sdr/internal/shared"
 	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 )
 
-func (s *Server) handleMessage(messageStr string) error {
+func (s *Server) handleMessage(connection *net.UDPConn, addr *net.UDPAddr, messageStr string) error {
 	message, err := shared.Parse[types.Message](messageStr)
 	if err != nil || message.Type == "" {
 		return fmt.Errorf("invalid message type")
+	}
+
+	// Send acknoledgement to message sender
+	responseJson, err := json.Marshal(types.Acknowledgement{From: s.Number})
+	if err != nil {
+		return err
+	}
+	_, err = connection.WriteToUDP([]byte(responseJson), addr)
+	if err != nil {
+		return err
 	}
 
 	switch message.Type {
@@ -56,9 +67,9 @@ func (s *Server) handleAnn(message *types.Message) {
 		electionState = types.Ann
 	}
 
-	err := s.sendMessage(&messageToSend)
+	err := s.sendMessage(&messageToSend, getNextServer(s.Number))
 	if err != nil {
-		shared.Log(types.ERROR, "Error while sending message")
+		shared.Log(types.ERROR, "Error while sending message : "+err.Error())
 	}
 }
 
@@ -85,16 +96,17 @@ func (s *Server) handleRes(message *types.Message) {
 		elected = message.Elected
 		shared.Log(types.INFO, shared.PINK+"Elected process: "+strconv.Itoa(elected)+shared.RESET)
 		processes := append(message.Processes, process)
+		electionState = types.Res
 		messageToSend = types.Message{Type: types.Res, Elected: elected, Processes: processes}
 	}
 
-	err := s.sendMessage(&messageToSend)
+	err := s.sendMessage(&messageToSend, getNextServer(s.Number))
 	if err != nil {
-		shared.Log(types.ERROR, "Error while sending message")
+		shared.Log(types.ERROR, "Error while sending message "+err.Error())
 	}
 }
 
-func (s *Server) sendMessage(message *types.Message) error {
+func (s *Server) sendMessage(message *types.Message, destServer int) error {
 
 	messageJson, err := json.Marshal(message)
 	if err != nil {
@@ -102,12 +114,7 @@ func (s *Server) sendMessage(message *types.Message) error {
 		return err
 	}
 
-	destServer := s.Number + 1
-	if destServer > nbProcesses {
-		destServer = 1
-	}
-
-	destUdpAddr, err := net.ResolveUDPAddr("udp4", s.Servers[destServer])
+	destUdpAddr, err := net.ResolveUDPAddr("udp", s.Servers[destServer])
 	if err != nil {
 		return err
 	}
@@ -119,7 +126,6 @@ func (s *Server) sendMessage(message *types.Message) error {
 	if err != nil {
 		return err
 	}
-	// TODO : better log message sent
 
 	stringToLog := "SENT TO P" + strconv.Itoa(destServer-1) + " => Type: " + string(message.Type) + ", List: "
 
@@ -130,6 +136,39 @@ func (s *Server) sendMessage(message *types.Message) error {
 	}
 
 	shared.Log(types.MESSAGE, stringToLog)
+
+	// Wait for acknowledgement from the next process & timeout after 1 second
+	buffer := make([]byte, 1024)
+	errDeadline := connection.SetReadDeadline(time.Now().Add(5 * time.Second))
+	if errDeadline != nil {
+		shared.Log(types.ERROR, errDeadline.Error())
+	}
+
+	n, _, err := connection.ReadFromUDP(buffer)
+
+	if err != nil {
+		if e, ok := err.(net.Error); !ok || e.Timeout() {
+			return fmt.Errorf("error while reading from udp: %v", err)
+		}
+		shared.Log(types.ERROR, "TIMEOUT for ACK from P"+strconv.Itoa(destServer-1))
+
+		err := s.sendMessage(message, getNextServer(destServer))
+		if err != nil {
+			shared.Log(types.ERROR, "Error while sending message : "+err.Error())
+		}
+		return nil
+	}
+
+	messageAck := string(buffer[0:n])
+	ack, err := shared.Parse[types.Acknowledgement](messageAck)
+	if err != nil {
+		return err
+	}
+
+	if ack.From != destServer {
+		return fmt.Errorf("ack from wrong process")
+	}
+
 	return nil
 }
 
@@ -139,8 +178,19 @@ func (s *Server) startElection() {
 	processes := append(make([]types.Process, 0), process)
 	message := types.Message{Type: types.Ann, Processes: processes}
 
-	s.sendMessage(&message)
+	err := s.sendMessage(&message, getNextServer(s.Number))
+	if err != nil {
+		shared.Log(types.ERROR, "Error while sending message : "+err.Error())
+	}
+
 	electionState = types.Ann
+}
+
+func getNextServer(current int) int {
+	if current == nbProcesses {
+		return 1
+	}
+	return current + 1
 }
 
 // TODO: move to utils

@@ -11,7 +11,7 @@ import (
 	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 )
 
-func Parse[T types.Config | types.Command | types.Message](jsonStr string) (*T, error) {
+func Parse[T types.Config | types.Command | types.Message | types.Acknowledgement](jsonStr string) (*T, error) {
 	var object T
 
 	err := json.Unmarshal([]byte(jsonStr), &object)
