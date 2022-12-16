@@ -27,7 +27,7 @@ var invalidCommand = "invalid command"
 var wrongServerNumber = "invalid server number"
 var emptyInput = "empty input"
 var chargeMustBePositive = "charge must be a positive integer"
-var timeOutValue = 7 * time.Second
+var timeOutValue = 1 * time.Second
 
 func (c *Client) Run(debug bool) {
 	signal.Notify(exitChan, syscall.SIGINT)
