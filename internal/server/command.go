@@ -49,6 +49,9 @@ func (s *Server) handleAsk() string {
 		// TODO: wait for election to finish
 		return "An election is running"
 	}
+	if elected == -1 {
+		return "No process was elected"
+	}
 	return "Process P" + strconv.Itoa(elected) + " from Server @" + s.Servers[getNextServer(elected)] + " was elected"
 }
 

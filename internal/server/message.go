@@ -96,8 +96,8 @@ func (s *Server) handleRes(message *types.Message) {
 		elected = message.Elected
 		shared.Log(types.INFO, shared.PINK+"Elected process: "+strconv.Itoa(elected)+shared.RESET)
 		processes := append(message.Processes, process)
-		electionState = types.Res
 		messageToSend = types.Message{Type: types.Res, Elected: elected, Processes: processes}
+		electionState = types.Res
 	}
 
 	err := s.sendMessage(&messageToSend, getNextServer(s.Number))
