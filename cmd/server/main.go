@@ -13,6 +13,8 @@ import (
 
 //go:embed config.json
 var config string
+var DEBUG_DELAY = 5  // in seconds
+var timeoutValue = 1 // in seconds
 
 func main() {
 
@@ -36,6 +38,16 @@ func main() {
 		log.Fatal("Invalid server number")
 	}
 
-	serv := server.Server{Number: number, Address: configuration.Servers[number], Servers: configuration.Servers}
-	serv.Run(*debug)
+	if *debug {
+		timeoutValue *= DEBUG_DELAY
+	}
+
+	serv := server.Server{
+		Debug:        *debug,
+		Number:       number,
+		Address:      configuration.Servers[number],
+		Servers:      configuration.Servers,
+		TimeoutValue: timeoutValue,
+	}
+	serv.Run()
 }

@@ -3,14 +3,17 @@ package main
 import (
 	_ "embed"
 	"flag"
+	"log"
+
 	"github.com/Lazzzer/labo3-sdr/internal/client"
 	"github.com/Lazzzer/labo3-sdr/internal/shared"
 	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
-	"log"
 )
 
 //go:embed config.json
 var config string
+var DEBUG_DELAY = 5  // in seconds
+var timeoutValue = 1 // in seconds
 
 func main() {
 	if len(flag.Args()) > 1 {
@@ -26,6 +29,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	cl := client.Client{Servers: configuration.Servers}
-	cl.Run(*debug)
+	if *debug {
+		timeoutValue *= DEBUG_DELAY
+	}
+
+	cl := client.Client{
+		Debug:        *debug,
+		Servers:      configuration.Servers,
+		TimeoutValue: timeoutValue,
+	}
+	cl.Run()
 }

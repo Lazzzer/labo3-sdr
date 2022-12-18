@@ -10,9 +10,11 @@ import (
 )
 
 type Server struct {
-	Number  int            // Numéro du serveur
-	Address string         // Adresse du serveur
-	Servers map[int]string // Map des serveurs
+	Debug        bool           // Mode debug
+	Number       int            // Numéro du serveur
+	Address      string         // Adresse du serveur
+	Servers      map[int]string // Map des serveurs
+	TimeoutValue int            // Valeur du timeout
 }
 
 var process types.Process           // Processus courant du serveur
@@ -21,8 +23,8 @@ var processNumber int               // Numéro du processus courant
 var electionState types.MessageType // État de l'élection
 var elected int = -1                // Numéro du processus élu
 
-func (s *Server) Run(debug bool) {
-	if debug {
+func (s *Server) Run() {
+	if s.Debug {
 		shared.Log(types.INFO, "Server started in debug mode"+shared.RESET)
 	}
 	s.setupProcessValue()

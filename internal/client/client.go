@@ -18,7 +18,9 @@ import (
 )
 
 type Client struct {
-	Servers map[int]string
+	Debug        bool           // Mode debug
+	Servers      map[int]string // Map des serveurs
+	TimeoutValue int            // Valeur du timeout
 }
 
 var exitChan = make(chan os.Signal, 1) // Catch du CTRL+C
@@ -29,12 +31,11 @@ var emptyInput = "empty input"
 var chargeMustBePositive = "charge must be a positive integer"
 var timeOutValue = 1 * time.Second
 
-func (c *Client) Run(debug bool) {
+func (c *Client) Run() {
 	signal.Notify(exitChan, syscall.SIGINT)
 
-	if debug {
+	if c.Debug {
 		fmt.Println("Client started in debug mode")
-		timeOutValue = 10 * time.Second
 	}
 
 	go func() {
