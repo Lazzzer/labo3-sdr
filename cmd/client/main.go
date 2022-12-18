@@ -13,7 +13,7 @@ import (
 //go:embed config.json
 var config string
 var DEBUG_DELAY = 5  // in seconds
-var timeoutValue = 1 // in seconds
+var timeoutDelay = 1 // in seconds
 
 func main() {
 	if len(flag.Args()) > 1 {
@@ -30,13 +30,13 @@ func main() {
 	}
 
 	if *debug {
-		timeoutValue *= DEBUG_DELAY
+		timeoutDelay *= DEBUG_DELAY
 	}
 
 	cl := client.Client{
 		Debug:        *debug,
 		Servers:      configuration.Servers,
-		TimeoutValue: timeoutValue,
+		TimeoutDelay: timeoutDelay,
 	}
 	cl.Run()
 }

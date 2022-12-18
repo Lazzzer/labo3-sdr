@@ -28,6 +28,11 @@ func (s *Server) handleMessage(connection *net.UDPConn, addr *net.UDPAddr, messa
 		return err
 	}
 
+	if s.Debug {
+		shared.Log(types.DEBUG, "Throttling message handling")
+		time.Sleep(time.Duration(5 * time.Second))
+	}
+
 	switch message.Type {
 	case types.Ann:
 		shared.Log(types.MESSAGE, "GOT => Type: announcement, List: "+showProcessList(message.Processes, true))
@@ -108,6 +113,11 @@ func (s *Server) handleRes(message *types.Message) {
 
 func (s *Server) sendMessage(message *types.Message, destServer int) error {
 
+	if s.Debug {
+		shared.Log(types.DEBUG, "Throttling message sending")
+		time.Sleep(time.Duration(time.Duration(s.DebugDelay) * time.Second))
+	}
+
 	messageJson, err := json.Marshal(message)
 	if err != nil {
 		shared.Log(types.ERROR, err.Error())
@@ -139,7 +149,7 @@ func (s *Server) sendMessage(message *types.Message, destServer int) error {
 
 	// Wait for acknowledgement from the next process & timeout after 1 second
 	buffer := make([]byte, 1024)
-	errDeadline := connection.SetReadDeadline(time.Now().Add(5 * time.Second))
+	errDeadline := connection.SetReadDeadline(time.Now().Add(time.Duration(s.TimeoutDelay) * time.Second))
 	if errDeadline != nil {
 		shared.Log(types.ERROR, errDeadline.Error())
 	}

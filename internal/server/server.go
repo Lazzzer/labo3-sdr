@@ -11,10 +11,11 @@ import (
 
 type Server struct {
 	Debug        bool           // Mode debug
+	DebugDelay   int            // Valeur du délai de debug
 	Number       int            // Numéro du serveur
 	Address      string         // Adresse du serveur
 	Servers      map[int]string // Map des serveurs
-	TimeoutValue int            // Valeur du timeout
+	TimeoutDelay int            // Valeur du timeout
 }
 
 var process types.Process           // Processus courant du serveur

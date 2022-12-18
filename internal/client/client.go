@@ -20,7 +20,7 @@ import (
 type Client struct {
 	Debug        bool           // Mode debug
 	Servers      map[int]string // Map des serveurs
-	TimeoutValue int            // Valeur du timeout
+	TimeoutDelay int            // Valeur du timeout
 }
 
 var exitChan = make(chan os.Signal, 1) // Catch du CTRL+C
@@ -29,7 +29,6 @@ var invalidCommand = "invalid command"
 var wrongServerNumber = "invalid server number"
 var emptyInput = "empty input"
 var chargeMustBePositive = "charge must be a positive integer"
-var timeOutValue = 1 * time.Second
 
 func (c *Client) Run() {
 	signal.Notify(exitChan, syscall.SIGINT)
@@ -60,7 +59,7 @@ func (c *Client) Run() {
 			continue
 		}
 
-		sendCommand(command, servAddr)
+		c.sendCommand(command, servAddr)
 	}
 }
 
@@ -130,7 +129,7 @@ func processInput(input string, c *Client) (string, string, error) {
 	}
 }
 
-func sendCommand(command string, address string) {
+func (c *Client) sendCommand(command string, address string) {
 	udpAddr, err := net.ResolveUDPAddr("udp", address)
 	if err != nil {
 		log.Fatal(err)
@@ -155,7 +154,7 @@ func sendCommand(command string, address string) {
 	}
 
 	buffer := make([]byte, 1024)
-	errDeadLine := connection.SetReadDeadline(time.Now().Add(timeOutValue))
+	errDeadLine := connection.SetReadDeadline(time.Now().Add(time.Duration(c.TimeoutDelay) * time.Second))
 	if errDeadLine != nil {
 		return
 	}
