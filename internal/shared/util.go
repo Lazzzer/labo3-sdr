@@ -26,10 +26,12 @@ func Log(logType types.LogType, message string) {
 	switch logType {
 	case types.INFO:
 		log.Println(CYAN + "(INFO) " + RESET + message)
+	case types.DEBUG:
+		log.Println(ORANGE + "(DEBUG) " + RESET + message)
 	case types.ERROR:
 		log.Println(RED + "(ERROR) " + RESET + message)
 	case types.MESSAGE:
-		log.Println(ORANGE + "(MESSAGE) " + RESET + message)
+		log.Println(PINK + "(MESSAGE C&R) " + RESET + message)
 	case types.COMMAND:
 		log.Println(YELLOW + "(COMMAND) " + RESET + message)
 	}
@@ -38,7 +40,9 @@ func Log(logType types.LogType, message string) {
 // Variables pour colorer le texte dans la console
 var RESET = "\033[0m"         // Variable pour réinitialiser la couleur du texte
 var RED = "\033[31m"          // Variable pour colorer le texte en rouge
-var PINK = "\033[38;5;198m"   // Variable pour colorer le texte en rose
+var PINK = "\033[38;5;219m"   // Variable pour colorer le texte en rose
+var PURPLE = "\033[38;5;198m" // Variable pour colorer le texte en violet
+
 var GREEN = "\033[32m"        // Variable pour colorer le texte en vert
 var YELLOW = "\033[33m"       // Variable pour colorer le texte en jaune
 var ORANGE = "\033[38;5;208m" // Variable pour colorer le texte en orange

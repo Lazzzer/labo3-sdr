@@ -25,7 +25,7 @@ var elected int = -1                // Numéro du processus élu
 
 func (s *Server) Run() {
 	if s.Debug {
-		shared.Log(types.INFO, "Server started in debug mode"+shared.RESET)
+		shared.Log(types.DEBUG, "Server started in debug mode")
 	}
 	s.setupProcessValue()
 

@@ -35,7 +35,7 @@ func (c *Client) Run() {
 	signal.Notify(exitChan, syscall.SIGINT)
 
 	if c.Debug {
-		fmt.Println("Client started in debug mode")
+		shared.Log(types.DEBUG, "Client started in debug mode")
 	}
 
 	go func() {

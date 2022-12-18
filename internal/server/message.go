@@ -55,7 +55,7 @@ func (s *Server) handleAnn(message *types.Message) {
 
 	if isProcessInlist {
 		elected = getNbProcessWithMinValue(&message.Processes)
-		shared.Log(types.INFO, shared.PINK+"Elected process: "+strconv.Itoa(elected)+shared.RESET)
+		shared.Log(types.INFO, shared.PURPLE+"Elected process: "+strconv.Itoa(elected)+shared.RESET)
 
 		processes := make([]types.Process, 0)
 		processes = append(processes, process)
@@ -94,7 +94,7 @@ func (s *Server) handleRes(message *types.Message) {
 		electionState = types.Ann
 	} else if electionState == types.Ann {
 		elected = message.Elected
-		shared.Log(types.INFO, shared.PINK+"Elected process: "+strconv.Itoa(elected)+shared.RESET)
+		shared.Log(types.INFO, shared.PURPLE+"Elected process: "+strconv.Itoa(elected)+shared.RESET)
 		processes := append(message.Processes, process)
 		messageToSend = types.Message{Type: types.Res, Elected: elected, Processes: processes}
 		electionState = types.Res
@@ -173,7 +173,7 @@ func (s *Server) sendMessage(message *types.Message, destServer int) error {
 }
 
 func (s *Server) startElection() {
-	shared.Log(types.INFO, shared.PINK+"Starting election"+shared.RESET)
+	shared.Log(types.INFO, shared.PURPLE+"Starting election"+shared.RESET)
 
 	processes := append(make([]types.Process, 0), process)
 	message := types.Message{Type: types.Ann, Processes: processes}

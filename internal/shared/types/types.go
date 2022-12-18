@@ -9,6 +9,7 @@ type LogType string
 
 const (
 	INFO    LogType = "INFO"
+	DEBUG   LogType = "DEBUG"
 	ERROR   LogType = "ERROR"
 	MESSAGE LogType = "MESSAGE"
 	COMMAND LogType = "COMMAND"
