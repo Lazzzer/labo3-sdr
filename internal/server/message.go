@@ -30,7 +30,7 @@ func (s *Server) handleMessage(connection *net.UDPConn, addr *net.UDPAddr, messa
 
 	if s.Debug {
 		shared.Log(types.DEBUG, "Throttling message handling")
-		time.Sleep(time.Duration(5 * time.Second))
+		time.Sleep(time.Duration(time.Duration(s.DebugDelay) * time.Second))
 	}
 
 	switch message.Type {
