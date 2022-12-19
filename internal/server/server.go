@@ -26,7 +26,6 @@ var elected int = -1                // Numéro du processus élu
 
 // Channels
 
-var addChan = make(chan int)              // Channel pour les commandes d'ajout de charge
 var annChan = make(chan types.Message, 1) // Channel pour les messages d'annonce
 var resChan = make(chan types.Message, 1) // Channel pour les messages de réponse
 

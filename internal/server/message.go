@@ -82,7 +82,7 @@ func (s *Server) handleRes(message *types.Message) {
 	isProcessInlist := false
 
 	for _, p := range message.Processes {
-		if process == p {
+		if process.Number == p.Number {
 			isProcessInlist = true
 			break
 		}

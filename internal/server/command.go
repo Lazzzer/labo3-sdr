@@ -25,7 +25,7 @@ func (s *Server) handleCommand(commandStr string) (string, error) {
 
 	switch command.Type {
 	case types.Add:
-		addChan <- *command.Value
+		go s.handleAdd(command)
 	case types.Ask:
 		return s.handleAsk(), nil
 	case types.New:
@@ -37,12 +37,15 @@ func (s *Server) handleCommand(commandStr string) (string, error) {
 }
 
 func (s *Server) handleAdd(command *types.Command) {
-	// TODO : Refactor
-
-	if electionState == types.Ann {
-		// TODO: store for later
-	} else {
+	isRunning := <-electionStateChan
+	if !isRunning {
 		process.Value += *command.Value
+		shared.Log(types.INFO, "New value added to process, value is now: "+strconv.Itoa(process.Value))
+	} else {
+		shared.Log(types.INFO, "Election is running, waiting for election to end")
+		<-electedChan
+		process.Value += *command.Value
+		shared.Log(types.INFO, "New value added to process, value is now: "+strconv.Itoa(process.Value))
 	}
 }
 
