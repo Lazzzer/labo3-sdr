@@ -7,6 +7,8 @@ package shared
 import (
 	"encoding/json"
 	"log"
+	"math"
+	"strconv"
 
 	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 )
@@ -35,6 +37,36 @@ func Log(logType types.LogType, message string) {
 	case types.COMMAND:
 		log.Println(YELLOW + "(COMMAND) " + RESET + message)
 	}
+}
+
+func GetNbProcessWithMinValue(processes *[]types.Process) int {
+	minValue := math.MaxInt
+	minProcessNumber := -1
+
+	for _, p := range *processes {
+		if p.Value < minValue {
+			minValue = p.Value
+			minProcessNumber = p.Number
+		}
+	}
+
+	return minProcessNumber
+}
+
+func ShowProcessList(processes []types.Process, withValue bool) string {
+	var list string
+	list = "["
+	for i, p := range processes {
+		list += "P" + strconv.Itoa(p.Number)
+		if withValue {
+			list += ":" + strconv.Itoa(p.Value)
+		}
+		if i != len(processes)-1 {
+			list += ", "
+		}
+	}
+	list += "]"
+	return list
 }
 
 // Variables pour colorer le texte dans la console

@@ -24,11 +24,23 @@ var processNumber int               // Numéro du processus courant
 var electionState types.MessageType // État de l'élection
 var elected int = -1                // Numéro du processus élu
 
+// Channels
+
+var addChan = make(chan int)              // Channel pour les commandes d'ajout de charge
+var annChan = make(chan types.Message, 1) // Channel pour les messages d'annonce
+var resChan = make(chan types.Message, 1) // Channel pour les messages de réponse
+
+var newElectionChan = make(chan bool)
+
+var electionStateChan = make(chan bool)
+var endElectionChan = make(chan bool)
+var electedChan = make(chan int)
+
 func (s *Server) Run() {
 	if s.Debug {
 		shared.Log(types.DEBUG, "Server started in debug mode")
 	}
-	s.setupProcessValue()
+	s.setup()
 
 	connection := s.startListening()
 	defer connection.Close()
@@ -38,7 +50,7 @@ func (s *Server) Run() {
 	s.handleCommunications(connection)
 }
 
-func (s *Server) setupProcessValue() {
+func (s *Server) setup() {
 	nbProcesses = len(s.Servers)
 
 	processNumber = s.Number - 1
@@ -61,6 +73,29 @@ func (s *Server) startListening() *net.UDPConn {
 }
 
 func (s *Server) handleCommunications(connection *net.UDPConn) {
+	go func() {
+		for {
+			select {
+			case <-newElectionChan:
+				s.startElection()
+			case <-endElectionChan:
+			out:
+				for {
+					select {
+					case electedChan <- elected:
+					default:
+						break out
+					}
+				}
+			case electionStateChan <- electionState == types.Ann:
+			case message := <-annChan:
+				s.handleAnn(&message)
+			case message := <-resChan:
+				s.handleRes(&message)
+			}
+		}
+	}()
+
 	buffer := make([]byte, 1024)
 	for {
 		n, addr, err := connection.ReadFromUDP(buffer)
@@ -72,17 +107,18 @@ func (s *Server) handleCommunications(connection *net.UDPConn) {
 		communication := string(buffer[0:n])
 		err = s.handleMessage(connection, addr, communication)
 		if err != nil {
-			// Traitement d'une commande si le message n'est pas valide
-			response, err := s.handleCommand(communication)
-			if err != nil {
-				shared.Log(types.ERROR, err.Error())
-				continue
-			}
-			// Envoi de la réponse à l'adresse du client
-			_, err = connection.WriteToUDP([]byte(response), addr)
-			if err != nil {
-				shared.Log(types.ERROR, err.Error())
-			}
+			go func() {
+				// Traitement d'une commande si le message n'est pas valide
+				response, err := s.handleCommand(communication)
+				if err != nil {
+					shared.Log(types.ERROR, err.Error())
+				}
+				// Envoi de la réponse à l'adresse du client
+				_, err = connection.WriteToUDP([]byte(response), addr)
+				if err != nil {
+					shared.Log(types.ERROR, err.Error())
+				}
+			}()
 		}
 	}
 }

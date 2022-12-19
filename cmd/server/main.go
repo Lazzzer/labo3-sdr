@@ -13,7 +13,7 @@ import (
 
 //go:embed config.json
 var config string
-var DEBUG_DELAY = 5  // in seconds
+var DEBUG_DELAY = 2  // in seconds
 var timeoutDelay = 1 // in seconds
 
 func main() {

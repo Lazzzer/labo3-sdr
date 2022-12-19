@@ -3,7 +3,6 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"math"
 	"net"
 	"strconv"
 	"time"
@@ -35,11 +34,9 @@ func (s *Server) handleMessage(connection *net.UDPConn, addr *net.UDPAddr, messa
 
 	switch message.Type {
 	case types.Ann:
-		shared.Log(types.MESSAGE, "GOT => Type: announcement, List: "+showProcessList(message.Processes, true))
-		s.handleAnn(message)
+		annChan <- *message
 	case types.Res:
-		shared.Log(types.MESSAGE, "GOT => Type: result, Elected: P"+strconv.Itoa(message.Elected)+", List: "+showProcessList(message.Processes, false))
-		s.handleRes(message)
+		resChan <- *message
 	default:
 		return fmt.Errorf("invalid message type")
 	}
@@ -48,6 +45,7 @@ func (s *Server) handleMessage(connection *net.UDPConn, addr *net.UDPAddr, messa
 }
 
 func (s *Server) handleAnn(message *types.Message) {
+	shared.Log(types.MESSAGE, "GOT => Type: announcement, List: "+shared.ShowProcessList(message.Processes, true))
 	var messageToSend types.Message
 	isProcessInlist := false
 
@@ -59,7 +57,7 @@ func (s *Server) handleAnn(message *types.Message) {
 	}
 
 	if isProcessInlist {
-		elected = getNbProcessWithMinValue(&message.Processes)
+		elected = shared.GetNbProcessWithMinValue(&message.Processes)
 		shared.Log(types.INFO, shared.PURPLE+"Elected process: "+strconv.Itoa(elected)+shared.RESET)
 
 		processes := make([]types.Process, 0)
@@ -79,6 +77,7 @@ func (s *Server) handleAnn(message *types.Message) {
 }
 
 func (s *Server) handleRes(message *types.Message) {
+	shared.Log(types.MESSAGE, "GOT => Type: result, Elected: P"+strconv.Itoa(message.Elected)+", List: "+shared.ShowProcessList(message.Processes, false))
 	var messageToSend types.Message
 	isProcessInlist := false
 
@@ -112,10 +111,15 @@ func (s *Server) handleRes(message *types.Message) {
 }
 
 func (s *Server) sendMessage(message *types.Message, destServer int) error {
-
 	if s.Debug {
 		shared.Log(types.DEBUG, "Throttling message sending")
 		time.Sleep(time.Duration(time.Duration(s.DebugDelay) * time.Second))
+	}
+
+	if message.Type == types.Res {
+		go func() {
+			endElectionChan <- true
+		}()
 	}
 
 	messageJson, err := json.Marshal(message)
@@ -140,9 +144,9 @@ func (s *Server) sendMessage(message *types.Message, destServer int) error {
 	stringToLog := "SENT TO P" + strconv.Itoa(destServer-1) + " => Type: " + string(message.Type) + ", List: "
 
 	if message.Type == types.Ann {
-		stringToLog += showProcessList(message.Processes, true)
+		stringToLog += shared.ShowProcessList(message.Processes, true)
 	} else {
-		stringToLog += showProcessList(message.Processes, false)
+		stringToLog += shared.ShowProcessList(message.Processes, false)
 	}
 
 	shared.Log(types.MESSAGE, stringToLog)
@@ -183,6 +187,12 @@ func (s *Server) sendMessage(message *types.Message, destServer int) error {
 }
 
 func (s *Server) startElection() {
+
+	if electionState == types.Ann {
+		shared.Log(types.INFO, "An election is already running")
+		return
+	}
+
 	shared.Log(types.INFO, shared.PURPLE+"Starting election"+shared.RESET)
 
 	processes := append(make([]types.Process, 0), process)
@@ -196,41 +206,18 @@ func (s *Server) startElection() {
 	electionState = types.Ann
 }
 
+func getElected() int {
+	isRunning := <-electionStateChan
+	if !isRunning {
+		return elected
+	} else {
+		return <-electedChan
+	}
+}
+
 func getNextServer(current int) int {
 	if current == nbProcesses {
 		return 1
 	}
 	return current + 1
-}
-
-// TODO: move to utils
-func getNbProcessWithMinValue(processes *[]types.Process) int {
-	minValue := math.MaxInt
-	minProcessNumber := -1
-
-	for _, p := range *processes {
-		if p.Value < minValue {
-			minValue = p.Value
-			minProcessNumber = p.Number
-		}
-	}
-
-	return minProcessNumber
-}
-
-// TODO: move to utils
-func showProcessList(processes []types.Process, withValue bool) string {
-	var list string
-	list = "["
-	for i, p := range processes {
-		list += "P" + strconv.Itoa(p.Number)
-		if withValue {
-			list += ":" + strconv.Itoa(p.Value)
-		}
-		if i != len(processes)-1 {
-			list += ", "
-		}
-	}
-	list += "]"
-	return list
 }

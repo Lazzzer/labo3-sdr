@@ -25,11 +25,11 @@ func (s *Server) handleCommand(commandStr string) (string, error) {
 
 	switch command.Type {
 	case types.Add:
-		s.handleAdd(command)
+		addChan <- *command.Value
 	case types.Ask:
 		return s.handleAsk(), nil
 	case types.New:
-		s.handleNew()
+		newElectionChan <- true
 	case types.Stop:
 		os.Exit(1)
 	}
@@ -37,6 +37,8 @@ func (s *Server) handleCommand(commandStr string) (string, error) {
 }
 
 func (s *Server) handleAdd(command *types.Command) {
+	// TODO : Refactor
+
 	if electionState == types.Ann {
 		// TODO: store for later
 	} else {
@@ -45,20 +47,8 @@ func (s *Server) handleAdd(command *types.Command) {
 }
 
 func (s *Server) handleAsk() string {
-	if electionState == types.Ann {
-		// TODO: wait for election to finish
-		return "An election is running"
-	}
-	if elected == -1 {
-		return "No process was elected"
-	}
-	return "Process P" + strconv.Itoa(elected) + " from Server @" + s.Servers[getNextServer(elected)] + " was elected"
-}
-
-func (s *Server) handleNew() {
-	if electionState == types.Ann {
-		shared.Log(types.INFO, "An election is already running")
-	} else {
-		s.startElection()
-	}
+	value := getElected()
+	response := "Process P" + strconv.Itoa(value) + " from Server @" + s.Servers[getNextServer(value)] + " was elected"
+	shared.Log(types.INFO, "RES TO ASK => "+response)
+	return response
 }
