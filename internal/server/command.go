@@ -29,7 +29,7 @@ func (s *Server) handleCommand(commandStr string) (string, error) {
 	case types.Ask:
 		return s.handleAsk(), nil
 	case types.New:
-		newElectionChan <- true
+		s.newElectionChan <- true
 	case types.Stop:
 		os.Exit(1)
 	}
@@ -37,13 +37,13 @@ func (s *Server) handleCommand(commandStr string) (string, error) {
 }
 
 func (s *Server) handleAdd(command *types.Command) {
-	isRunning := <-electionStateChan
+	isRunning := <-s.electionStateChan
 	if !isRunning {
 		s.process.Value += *command.Value
 		shared.Log(types.INFO, "New value added to process, value is now: "+strconv.Itoa(s.process.Value))
 	} else {
 		shared.Log(types.INFO, "Election is running, waiting for election to end")
-		<-electedChan
+		<-s.electedChan
 		s.process.Value += *command.Value
 		shared.Log(types.INFO, "New value added to process, value is now: "+strconv.Itoa(s.process.Value))
 	}
@@ -51,7 +51,13 @@ func (s *Server) handleAdd(command *types.Command) {
 
 func (s *Server) handleAsk() string {
 	value := s.getElected()
-	response := "Process P" + strconv.Itoa(value) + " from Server @" + s.Servers[s.getNextServer(value)] + " was elected"
+
+	var response string
+	if value == -1 {
+		response = "No election was run"
+	} else {
+		response = "Process P" + strconv.Itoa(value) + " from Server @" + s.Servers[s.getNextServer(value)] + " was elected"
+	}
 	shared.Log(types.INFO, "RES TO ASK => "+response)
 	return response
 }

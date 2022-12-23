@@ -34,9 +34,9 @@ func (s *Server) handleMessage(connection *net.UDPConn, addr *net.UDPAddr, messa
 
 	switch message.Type {
 	case types.Ann:
-		annChan <- *message
+		s.annChan <- *message
 	case types.Res:
-		resChan <- *message
+		s.resChan <- *message
 	default:
 		return fmt.Errorf("invalid message type")
 	}
@@ -118,7 +118,7 @@ func (s *Server) sendMessage(message *types.Message, destServer int) error {
 
 	if message.Type == types.Res {
 		go func() {
-			endElectionChan <- true
+			s.endElectionChan <- true
 		}()
 	}
 
@@ -207,11 +207,11 @@ func (s *Server) startElection() {
 }
 
 func (s *Server) getElected() int {
-	isRunning := <-electionStateChan
+	isRunning := <-s.electionStateChan
 	if !isRunning {
 		return s.elected
 	} else {
-		return <-electedChan
+		return <-s.electedChan
 	}
 }
 

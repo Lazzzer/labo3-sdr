@@ -10,29 +10,26 @@ import (
 )
 
 type Server struct {
-	Debug         bool              // Mode debug
-	DebugDelay    int               // Valeur du délai de debug
-	Number        int               // Numéro du serveur
-	Address       string            // Adresse du serveur
-	Servers       map[int]string    // Map des serveurs
-	TimeoutDelay  int               // Valeur du timeout
+	Debug        bool           // Mode debug
+	DebugDelay   int            // Valeur du délai de debug
+	Number       int            // Numéro du serveur
+	Address      string         // Adresse du serveur
+	Servers      map[int]string // Map des serveurs
+	TimeoutDelay int            // Valeur du timeout
+
 	process       types.Process     // Processus courant du serveur
 	nbProcesses   int               // Nombre de processus dans le réseau
 	processNumber int               // Numéro du processus courant
 	electionState types.MessageType // État de l'élection
 	elected       int               // Numéro du processus élu
+
+	annChan           chan types.Message // Channel pour les messages d'annonce
+	resChan           chan types.Message // Channel pour les messages de réponse
+	newElectionChan   chan bool
+	electionStateChan chan bool
+	endElectionChan   chan bool
+	electedChan       chan int
 }
-
-// Channels
-
-var annChan = make(chan types.Message, 1) // Channel pour les messages d'annonce
-var resChan = make(chan types.Message, 1) // Channel pour les messages de réponse
-
-var newElectionChan = make(chan bool)
-
-var electionStateChan = make(chan bool)
-var endElectionChan = make(chan bool)
-var electedChan = make(chan int)
 
 func (s *Server) Run() {
 	if s.Debug {
@@ -49,6 +46,16 @@ func (s *Server) Run() {
 }
 
 func (s *Server) setup() {
+
+	s.annChan = make(chan types.Message, 1) // Channel pour les messages d'annonce
+	s.resChan = make(chan types.Message, 1) // Channel pour les messages de réponse
+
+	s.newElectionChan = make(chan bool)
+
+	s.electionStateChan = make(chan bool)
+	s.endElectionChan = make(chan bool)
+	s.electedChan = make(chan int)
+
 	s.nbProcesses = len(s.Servers)
 	s.processNumber = s.Number - 1
 	s.process = types.Process{Number: s.processNumber, Value: 0}
@@ -73,21 +80,21 @@ func (s *Server) handleCommunications(connection *net.UDPConn) {
 	go func() {
 		for {
 			select {
-			case <-newElectionChan:
+			case <-s.newElectionChan:
 				s.startElection()
-			case <-endElectionChan:
+			case <-s.endElectionChan:
 			out:
 				for {
 					select {
-					case electedChan <- s.elected:
+					case s.electedChan <- s.elected:
 					default:
 						break out
 					}
 				}
-			case electionStateChan <- s.electionState == types.Ann:
-			case message := <-annChan:
+			case s.electionStateChan <- s.electionState == types.Ann:
+			case message := <-s.annChan:
 				s.handleAnn(&message)
-			case message := <-resChan:
+			case message := <-s.resChan:
 				s.handleRes(&message)
 			}
 		}
