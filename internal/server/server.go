@@ -10,19 +10,18 @@ import (
 )
 
 type Server struct {
-	Debug        bool           // Mode debug
-	DebugDelay   int            // Valeur du délai de debug
-	Number       int            // Numéro du serveur
-	Address      string         // Adresse du serveur
-	Servers      map[int]string // Map des serveurs
-	TimeoutDelay int            // Valeur du timeout
+	Debug         bool              // Mode debug
+	DebugDelay    int               // Valeur du délai de debug
+	Number        int               // Numéro du serveur
+	Address       string            // Adresse du serveur
+	Servers       map[int]string    // Map des serveurs
+	TimeoutDelay  int               // Valeur du timeout
+	process       types.Process     // Processus courant du serveur
+	nbProcesses   int               // Nombre de processus dans le réseau
+	processNumber int               // Numéro du processus courant
+	electionState types.MessageType // État de l'élection
+	elected       int               // Numéro du processus élu
 }
-
-var process types.Process           // Processus courant du serveur
-var nbProcesses int                 // Nombre de processus dans le réseau
-var processNumber int               // Numéro du processus courant
-var electionState types.MessageType // État de l'élection
-var elected int = -1                // Numéro du processus élu
 
 // Channels
 
@@ -44,17 +43,16 @@ func (s *Server) Run() {
 	connection := s.startListening()
 	defer connection.Close()
 
-	shared.Log(types.INFO, shared.GREEN+"Server #"+strconv.Itoa(s.Number)+" as Process P"+strconv.Itoa(process.Number)+" listening on "+s.Address+shared.RESET)
+	shared.Log(types.INFO, shared.GREEN+"Server #"+strconv.Itoa(s.Number)+" as Process P"+strconv.Itoa(s.process.Number)+" listening on "+s.Address+shared.RESET)
 
 	s.handleCommunications(connection)
 }
 
 func (s *Server) setup() {
-	nbProcesses = len(s.Servers)
-
-	processNumber = s.Number - 1
-
-	process = types.Process{Number: processNumber, Value: 0}
+	s.nbProcesses = len(s.Servers)
+	s.processNumber = s.Number - 1
+	s.process = types.Process{Number: s.processNumber, Value: 0}
+	s.elected = -1
 }
 
 func (s *Server) startListening() *net.UDPConn {
@@ -81,12 +79,12 @@ func (s *Server) handleCommunications(connection *net.UDPConn) {
 			out:
 				for {
 					select {
-					case electedChan <- elected:
+					case electedChan <- s.elected:
 					default:
 						break out
 					}
 				}
-			case electionStateChan <- electionState == types.Ann:
+			case electionStateChan <- s.electionState == types.Ann:
 			case message := <-annChan:
 				s.handleAnn(&message)
 			case message := <-resChan:

@@ -39,19 +39,19 @@ func (s *Server) handleCommand(commandStr string) (string, error) {
 func (s *Server) handleAdd(command *types.Command) {
 	isRunning := <-electionStateChan
 	if !isRunning {
-		process.Value += *command.Value
-		shared.Log(types.INFO, "New value added to process, value is now: "+strconv.Itoa(process.Value))
+		s.process.Value += *command.Value
+		shared.Log(types.INFO, "New value added to process, value is now: "+strconv.Itoa(s.process.Value))
 	} else {
 		shared.Log(types.INFO, "Election is running, waiting for election to end")
 		<-electedChan
-		process.Value += *command.Value
-		shared.Log(types.INFO, "New value added to process, value is now: "+strconv.Itoa(process.Value))
+		s.process.Value += *command.Value
+		shared.Log(types.INFO, "New value added to process, value is now: "+strconv.Itoa(s.process.Value))
 	}
 }
 
 func (s *Server) handleAsk() string {
-	value := getElected()
-	response := "Process P" + strconv.Itoa(value) + " from Server @" + s.Servers[getNextServer(value)] + " was elected"
+	value := s.getElected()
+	response := "Process P" + strconv.Itoa(value) + " from Server @" + s.Servers[s.getNextServer(value)] + " was elected"
 	shared.Log(types.INFO, "RES TO ASK => "+response)
 	return response
 }

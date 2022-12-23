@@ -50,27 +50,27 @@ func (s *Server) handleAnn(message *types.Message) {
 	isProcessInlist := false
 
 	for _, p := range message.Processes {
-		if process == p {
+		if s.process == p {
 			isProcessInlist = true
 			break
 		}
 	}
 
 	if isProcessInlist {
-		elected = shared.GetNbProcessWithMinValue(&message.Processes)
-		shared.Log(types.INFO, shared.PURPLE+"Elected process: "+strconv.Itoa(elected)+shared.RESET)
+		s.elected = shared.GetNbProcessWithMinValue(&message.Processes)
+		shared.Log(types.INFO, shared.PURPLE+"Elected process: "+strconv.Itoa(s.elected)+shared.RESET)
 
 		processes := make([]types.Process, 0)
-		processes = append(processes, process)
-		messageToSend = types.Message{Type: types.Res, Elected: elected, Processes: processes}
-		electionState = types.Res
+		processes = append(processes, s.process)
+		messageToSend = types.Message{Type: types.Res, Elected: s.elected, Processes: processes}
+		s.electionState = types.Res
 	} else {
-		processes := append(message.Processes, process)
+		processes := append(message.Processes, s.process)
 		messageToSend = types.Message{Type: types.Ann, Elected: -1, Processes: processes}
-		electionState = types.Ann
+		s.electionState = types.Ann
 	}
 
-	err := s.sendMessage(&messageToSend, getNextServer(s.Number))
+	err := s.sendMessage(&messageToSend, s.getNextServer(s.Number))
 	if err != nil {
 		shared.Log(types.ERROR, "Error while sending message : "+err.Error())
 	}
@@ -82,7 +82,7 @@ func (s *Server) handleRes(message *types.Message) {
 	isProcessInlist := false
 
 	for _, p := range message.Processes {
-		if process.Number == p.Number {
+		if s.process.Number == p.Number {
 			isProcessInlist = true
 			break
 		}
@@ -92,19 +92,19 @@ func (s *Server) handleRes(message *types.Message) {
 		return
 	}
 
-	if electionState == types.Res && elected != processNumber {
-		processes := append(make([]types.Process, 0), process)
+	if s.electionState == types.Res && s.elected != s.processNumber {
+		processes := append(make([]types.Process, 0), s.process)
 		messageToSend = types.Message{Type: types.Ann, Elected: -1, Processes: processes}
-		electionState = types.Ann
-	} else if electionState == types.Ann {
-		elected = message.Elected
-		shared.Log(types.INFO, shared.PURPLE+"Elected process: "+strconv.Itoa(elected)+shared.RESET)
-		processes := append(message.Processes, process)
-		messageToSend = types.Message{Type: types.Res, Elected: elected, Processes: processes}
-		electionState = types.Res
+		s.electionState = types.Ann
+	} else if s.electionState == types.Ann {
+		s.elected = message.Elected
+		shared.Log(types.INFO, shared.PURPLE+"Elected process: "+strconv.Itoa(s.elected)+shared.RESET)
+		processes := append(message.Processes, s.process)
+		messageToSend = types.Message{Type: types.Res, Elected: s.elected, Processes: processes}
+		s.electionState = types.Res
 	}
 
-	err := s.sendMessage(&messageToSend, getNextServer(s.Number))
+	err := s.sendMessage(&messageToSend, s.getNextServer(s.Number))
 	if err != nil {
 		shared.Log(types.ERROR, "Error while sending message "+err.Error())
 	}
@@ -166,7 +166,7 @@ func (s *Server) sendMessage(message *types.Message, destServer int) error {
 		}
 		shared.Log(types.ERROR, "TIMEOUT for ACK from P"+strconv.Itoa(destServer-1))
 
-		err := s.sendMessage(message, getNextServer(destServer))
+		err := s.sendMessage(message, s.getNextServer(destServer))
 		if err != nil {
 			shared.Log(types.ERROR, "Error while sending message : "+err.Error())
 		}
@@ -188,35 +188,35 @@ func (s *Server) sendMessage(message *types.Message, destServer int) error {
 
 func (s *Server) startElection() {
 
-	if electionState == types.Ann {
+	if s.electionState == types.Ann {
 		shared.Log(types.INFO, "An election is already running")
 		return
 	}
 
 	shared.Log(types.INFO, shared.PURPLE+"Starting election"+shared.RESET)
 
-	processes := append(make([]types.Process, 0), process)
+	processes := append(make([]types.Process, 0), s.process)
 	message := types.Message{Type: types.Ann, Processes: processes}
 
-	err := s.sendMessage(&message, getNextServer(s.Number))
+	err := s.sendMessage(&message, s.getNextServer(s.Number))
 	if err != nil {
 		shared.Log(types.ERROR, "Error while sending message : "+err.Error())
 	}
 
-	electionState = types.Ann
+	s.electionState = types.Ann
 }
 
-func getElected() int {
+func (s *Server) getElected() int {
 	isRunning := <-electionStateChan
 	if !isRunning {
-		return elected
+		return s.elected
 	} else {
 		return <-electedChan
 	}
 }
 
-func getNextServer(current int) int {
-	if current == nbProcesses {
+func (s *Server) getNextServer(current int) int {
+	if current == s.nbProcesses {
 		return 1
 	}
 	return current + 1
