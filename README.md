@@ -144,6 +144,6 @@ Lorsqu'un serveur ne répond pas à un `Message` inter-server, il est considér�
 
 Ce système de timeout permet de gérer certains cas de panne de processus mais pas tous. En effet, il se peut qu'une élection puisse se bloquer lors de cas où une réception de message (que ce soit une annonce ou un résultat) a pu se faire (c'est-à-dire, avec envoi d'ack) juste avant que ce dernier ne tombe en panne et ne puisse transmettre l'information au prochain.
 
-### Points à améliorer
+### Points à améliorer
 
 Comme brièvement évoqué dans la partie serveur, il y a des scénarios où une panne peut s'avérer problématique lors d'une élection. Nous pourrions compléter l'algorithme d'élection pour qu'il puisse gérer ce genre de cas.
