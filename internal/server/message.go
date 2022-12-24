@@ -103,21 +103,29 @@ func (s *Server) handleRes(message *types.Message) {
 	}
 
 	if s.electionState == types.Res && s.elected != message.Elected {
-		processes := append(make([]types.Process, 0), s.process)
-		messageToSend = types.Message{Type: types.Ann, Elected: -1, Processes: processes}
-		s.electionState = types.Ann
+		if s.elected <= message.Elected {
+			shared.Log(types.INFO, "Detected election in parallel, redoing election")
+			processes := append(make([]types.Process, 0), s.process)
+			messageToSend = types.Message{Type: types.Ann, Elected: -1, Processes: processes}
+			s.electionState = types.Ann
+			err := s.sendMessage(&messageToSend, s.getNextServer(s.Number))
+			if err != nil {
+				shared.Log(types.ERROR, "Error while sending message "+err.Error())
+			}
+		}
 	} else if s.electionState == types.Ann {
 		s.elected = message.Elected
 		shared.Log(types.INFO, shared.PURPLE+"Elected process: "+strconv.Itoa(s.elected)+shared.RESET)
 		processes := append(message.Processes, s.process)
 		messageToSend = types.Message{Type: types.Res, Elected: s.elected, Processes: processes}
 		s.electionState = types.Res
+
+		err := s.sendMessage(&messageToSend, s.getNextServer(s.Number))
+		if err != nil {
+			shared.Log(types.ERROR, "Error while sending message "+err.Error())
+		}
 	}
 
-	err := s.sendMessage(&messageToSend, s.getNextServer(s.Number))
-	if err != nil {
-		shared.Log(types.ERROR, "Error while sending message "+err.Error())
-	}
 }
 
 // sendMessage envoie un message de type announcement ou result à un autre serveur.
