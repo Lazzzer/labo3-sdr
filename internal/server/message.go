@@ -172,16 +172,14 @@ func (s *Server) sendMessage(message *types.Message, destServer int) error {
 	n, _, err := connection.ReadFromUDP(buffer)
 
 	if err != nil {
-		if e, ok := err.(net.Error); !ok || e.Timeout() {
-			return fmt.Errorf("error while reading from udp: %v", err)
+		if e, ok := err.(net.Error); ok || e.Timeout() {
+			shared.Log(types.ERROR, "TIMEOUT for ACK from P"+strconv.Itoa(destServer-1))
+			err := s.sendMessage(message, s.getNextServer(destServer))
+			if err != nil {
+				shared.Log(types.ERROR, "Error while sending message : "+err.Error())
+			}
+			return nil
 		}
-		shared.Log(types.ERROR, "TIMEOUT for ACK from P"+strconv.Itoa(destServer-1))
-
-		err := s.sendMessage(message, s.getNextServer(destServer))
-		if err != nil {
-			shared.Log(types.ERROR, "Error while sending message : "+err.Error())
-		}
-		return nil
 	}
 
 	messageAck := string(buffer[0:n])
