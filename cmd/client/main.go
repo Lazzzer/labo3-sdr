@@ -26,7 +26,6 @@ func main() {
 	if len(flag.Args()) > 1 {
 		log.Fatal("usage: go run ./main.go [-debug]")
 	}
-	//TODO: crash if someone tries to run like this ? "go run ./main.go bite"
 
 	debug := flag.Bool("debug", false, "Boolean: Run client in debug mode. Default is false")
 	flag.Parse()
