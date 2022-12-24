@@ -1,6 +1,11 @@
 // Auteurs: Jonathan Friedli, Lazar Pavicevic
 // Labo 3 SDR
 
+// Package test propose un test d'intégration pour l'application.
+// Ce package contient un test lançant 2 serveurs avec des charges différentes dans un réseau de 3 serveurs.
+// Le client de test va demander une élection suivie d'une demande du processus élu. Le test vérifie que l'élection se fait
+// correctement avec le serveur down et que le processus élu est bien le serveur avec la plus petite charge.
+// Finalement, le client doit pouvoir recevoir le bon processus élu à la fin de l'élection après avoir eu sa requête en attente.
 package test
 
 import (
@@ -16,9 +21,8 @@ import (
 	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 )
 
-// TestClient est un client de test
-type TestClient struct {
-}
+// TestClient est un client de test simple qui peut envoyer des commandes aux serveurs comme un client normal du projet.
+type TestClient struct{}
 
 var testClient = TestClient{}
 

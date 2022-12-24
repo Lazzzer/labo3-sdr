@@ -1,3 +1,9 @@
+// Auteurs: Jonathan Friedli, Lazar Pavicevic
+// Labo 3 SDR
+
+// Package main est le point d'entrée du programme permettant de démarrer le serveur.
+// Le serveur a à disposition un fichier de configuration qui contient les adresses des serveurs.
+// Il gère aussi un flag debug qui permet d'allonger le temps d'attente des requêtes avant de timeout.
 package main
 
 import (
@@ -16,6 +22,7 @@ var config string
 var DEBUG_DELAY = 2  // in seconds
 var timeoutDelay = 1 // in seconds
 
+// main est la méthode d'entrée du programme
 func main() {
 
 	debug := flag.Bool("debug", false, "Boolean: Run server in debug mode. Default is false")

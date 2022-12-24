@@ -1,3 +1,10 @@
+// Auteurs: Jonathan Friedli, Lazar Pavicevic
+// Labo 3 SDR
+
+// Package client propose un client UDP envoyant des commandes sous forme de string json à des serveurs du réseau.
+//
+// Le client parse l'entrée de l'utilisateur et envoie la commande correspondante au serveur. Si le serveur destinataire
+// ne répond pas dans un délai défini par  TimeoutDelay seconde, le client affiche un message d'erreur.
 package client
 
 import (
@@ -17,19 +24,22 @@ import (
 	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 )
 
+// Client est la structure représentant le client UDP capable de faire des commandes aux serveurs connectés.
 type Client struct {
 	Debug        bool           // Mode debug
-	Servers      map[int]string // Map des serveurs
+	Servers      map[int]string // Map des serveurs accessibles
 	TimeoutDelay int            // Valeur du timeout
 }
 
-var exitChan = make(chan os.Signal, 1) // Catch du CTRL+C
+var exitChan = make(chan os.Signal, 1) // Channel qui gère à la capture du CTRL+C
 
+// Messages d'erreur
 var invalidCommand = "invalid command"
 var wrongServerNumber = "invalid server number"
 var emptyInput = "empty input"
 var chargeMustBePositive = "charge must be a positive integer"
 
+// Run est la méthode principale du client. Elle gère l'entrée de l'utilisateur et envoie les commandes aux serveurs.
 func (c *Client) Run() {
 	signal.Notify(exitChan, syscall.SIGINT)
 
@@ -63,6 +73,7 @@ func (c *Client) Run() {
 	}
 }
 
+// displayPrompt affiche les commandes disponibles pour l'utilisateur.
 func displayPrompt() {
 	fmt.Println("\nAvailable commands:")
 	fmt.Println("  - <server number> add <number>")
@@ -73,6 +84,10 @@ func displayPrompt() {
 	fmt.Println("Enter a command to send to a connected server on the network:")
 }
 
+// processInput parse l'entrée de l'utilisateur et retourne un tuple contenant :
+// - la commande à envoyer au serveur sous forme de string json
+// - l'adresse du serveur auquel envoyer la commande
+// - une erreur si l'entrée est invalide
 func processInput(input string, c *Client) (string, string, error) {
 	args := strings.Fields(input)
 
@@ -129,6 +144,8 @@ func processInput(input string, c *Client) (string, string, error) {
 	}
 }
 
+// sendCommand envoie une commande au serveur spécifié. Elle s'occupe de la connexion UDP et de la fermeture de celle-ci.
+// Elle a également la possibilité de timeout si le serveur ne répond pas.
 func (c *Client) sendCommand(command string, address string) {
 	udpAddr, err := net.ResolveUDPAddr("udp", address)
 	if err != nil {
@@ -162,11 +179,9 @@ func (c *Client) sendCommand(command string, address string) {
 
 	if err != nil {
 		if e, ok := err.(net.Error); !ok || !e.Timeout() {
-			// error is not a timeout
 			fmt.Println(shared.RED + "Error while reading from server @" + udpAddr.String() + shared.RESET)
 			return
 		}
-		// timeout
 		fmt.Println(shared.RED + "Server @" + udpAddr.String() + " is unreachable" + shared.RESET)
 		return
 	}

@@ -1,3 +1,10 @@
+// Auteurs: Jonathan Friedli, Lazar Pavicevic
+// Labo 3 SDR
+
+// Package serveur propose un serveur UDP connecté dans un réseau de serveurs. Le serveur peut recevoir des commandes de clients UDP et
+// créer des élections pour choisir un processus élu avec la charge la moins élevée en suivant l'algorithme de Chang et Roberts.
+// Le processus d'élection est géré par des messages inter-processus envoyés par UDP avec acks.
+// Les élections resistent à des pannes de processus mais peuvent être perturbées par des cas limites.
 package server
 
 import (
@@ -9,6 +16,7 @@ import (
 	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 )
 
+// handleCommand gère les commandes reçues des clients UDP.
 func (s *Server) handleCommand(commandStr string) (string, error) {
 	command, err := shared.Parse[types.Command](commandStr)
 	if err != nil || command.Type == "" {
@@ -36,6 +44,7 @@ func (s *Server) handleCommand(commandStr string) (string, error) {
 	return "Command " + string(command.Type) + " handled", nil
 }
 
+// handleAdd gère les ajouts de valeur à la charge du processus.
 func (s *Server) handleAdd(command *types.Command) {
 	isRunning := <-s.electionStateChan
 	if !isRunning {
@@ -49,6 +58,7 @@ func (s *Server) handleAdd(command *types.Command) {
 	}
 }
 
+// handleAsk gère la demande du numéro du processus élu par un client UDP.
 func (s *Server) handleAsk() string {
 	value := s.getElected()
 

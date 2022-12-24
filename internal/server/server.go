@@ -1,3 +1,10 @@
+// Auteurs: Jonathan Friedli, Lazar Pavicevic
+// Labo 3 SDR
+
+// Package serveur propose un serveur UDP connecté dans un réseau de serveurs. Le serveur peut recevoir des commandes de clients UDP et
+// créer des élections pour choisir un processus élu avec la charge la moins élevée en suivant l'algorithme de Chang et Roberts.
+// Le processus d'élection est géré par des messages inter-processus envoyés par UDP avec acks.
+// Les élections resistent à des pannes de processus mais peuvent être perturbées par des cas limites.
 package server
 
 import (
@@ -9,6 +16,7 @@ import (
 	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 )
 
+// Server est la structure représentant le serveur UDP connecté dans un réseau de serveurs.
 type Server struct {
 	Debug        bool           // Mode debug
 	DebugDelay   int            // Valeur du délai de debug
@@ -25,12 +33,14 @@ type Server struct {
 
 	annChan           chan types.Message // Channel pour les messages d'annonce
 	resChan           chan types.Message // Channel pour les messages de réponse
-	newElectionChan   chan bool
-	electionStateChan chan bool
-	endElectionChan   chan bool
-	electedChan       chan int
+	newElectionChan   chan bool          // Channel pour les nouvelles élections
+	electionStateChan chan bool          // Channel monitorant l'état de l'élection
+	endElectionChan   chan bool          // Channel de notification de fin d'élection
+	electedChan       chan int           // Channel de notification de processus élu
 }
 
+// Run est la méthode principale du serveur. Elle gère l'initialisation du serveur, l'écoute des connexions
+// et la gestion des communications.
 func (s *Server) Run() {
 	if s.Debug {
 		shared.Log(types.DEBUG, "Server started in debug mode")
@@ -45,6 +55,7 @@ func (s *Server) Run() {
 	s.handleCommunications(connection)
 }
 
+// setup initialise les variables du serveur.
 func (s *Server) setup() {
 
 	s.annChan = make(chan types.Message, 1) // Channel pour les messages d'annonce
@@ -62,6 +73,7 @@ func (s *Server) setup() {
 	s.elected = -1
 }
 
+// startListening initialise la connexion UDP du serveur et écoute les connexions entrantes.
 func (s *Server) startListening() *net.UDPConn {
 	udpAddr, err := net.ResolveUDPAddr("udp4", s.Address)
 	if err != nil {
@@ -76,6 +88,8 @@ func (s *Server) startListening() *net.UDPConn {
 	return connection
 }
 
+// handleCommunications gère les communications du serveur.
+// La méthode écoute les messages et commandes ainsi que les demande et fin d'élection.
 func (s *Server) handleCommunications(connection *net.UDPConn) {
 	go func() {
 		for {

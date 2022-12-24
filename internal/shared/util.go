@@ -2,6 +2,7 @@
 // Labo 3 SDR
 // source: https://twin.sh/articles/35/how-to-add-colors-to-your-console-terminal-output-in-go
 
+// Package shared propose des fonctions utilitaires pour le projet.
 package shared
 
 import (
@@ -13,6 +14,7 @@ import (
 	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 )
 
+// Parse permet de parser un objet JSON en un objet de type T.
 func Parse[T types.Config | types.Command | types.Message | types.Acknowledgement](jsonStr string) (*T, error) {
 	var object T
 
@@ -24,6 +26,7 @@ func Parse[T types.Config | types.Command | types.Message | types.Acknowledgemen
 	return &object, nil
 }
 
+// Log permet d'afficher un message dans la console avec une couleur différente selon le type de log.
 func Log(logType types.LogType, message string) {
 	switch logType {
 	case types.INFO:
@@ -39,6 +42,7 @@ func Log(logType types.LogType, message string) {
 	}
 }
 
+// GetNbProcessWithMinValue retourne le numéro du processus avec la valeur la plus petite.
 func GetNbProcessWithMinValue(processes *[]types.Process) int {
 	minValue := math.MaxInt
 	minProcessNumber := -1
@@ -53,6 +57,7 @@ func GetNbProcessWithMinValue(processes *[]types.Process) int {
 	return minProcessNumber
 }
 
+// ShowProcessList retourne une chaîne de caractères représentant la liste des processus.
 func ShowProcessList(processes []types.Process, withValue bool) string {
 	var list string
 	list = "["

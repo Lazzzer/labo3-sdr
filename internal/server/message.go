@@ -1,3 +1,10 @@
+// Auteurs: Jonathan Friedli, Lazar Pavicevic
+// Labo 3 SDR
+
+// Package serveur propose un serveur UDP connecté dans un réseau de serveurs. Le serveur peut recevoir des commandes de clients UDP et
+// créer des élections pour choisir un processus élu avec la charge la moins élevée en suivant l'algorithme de Chang et Roberts.
+// Le processus d'élection est géré par des messages inter-processus envoyés par UDP avec acks.
+// Les élections resistent à des pannes de processus mais peuvent être perturbées par des cas limites.
 package server
 
 import (
@@ -11,6 +18,7 @@ import (
 	"github.com/Lazzzer/labo3-sdr/internal/shared/types"
 )
 
+// handleMessage gère les messages reçus des autres serveurs lors de l'exécution de l'algorithme de Chang et Roberts.
 func (s *Server) handleMessage(connection *net.UDPConn, addr *net.UDPAddr, messageStr string) error {
 	message, err := shared.Parse[types.Message](messageStr)
 	if err != nil || message.Type == "" {
@@ -44,6 +52,7 @@ func (s *Server) handleMessage(connection *net.UDPConn, addr *net.UDPAddr, messa
 	return nil
 }
 
+// handleAnn gère les messages de type announcement de l'algorithme de Chang et Roberts.
 func (s *Server) handleAnn(message *types.Message) {
 	shared.Log(types.MESSAGE, "GOT => Type: announcement, List: "+shared.ShowProcessList(message.Processes, true))
 	var messageToSend types.Message
@@ -76,6 +85,7 @@ func (s *Server) handleAnn(message *types.Message) {
 	}
 }
 
+// handleRes gère les messages de type result de l'algorithme de Chang et Roberts.
 func (s *Server) handleRes(message *types.Message) {
 	shared.Log(types.MESSAGE, "GOT => Type: result, Elected: P"+strconv.Itoa(message.Elected)+", List: "+shared.ShowProcessList(message.Processes, false))
 	var messageToSend types.Message
@@ -110,6 +120,7 @@ func (s *Server) handleRes(message *types.Message) {
 	}
 }
 
+// sendMessage envoie un message de type announcement ou result à un autre serveur.
 func (s *Server) sendMessage(message *types.Message, destServer int) error {
 	if s.Debug {
 		shared.Log(types.DEBUG, "Throttling message sending")
@@ -186,6 +197,7 @@ func (s *Server) sendMessage(message *types.Message, destServer int) error {
 	return nil
 }
 
+// startElection lance une élection en vérifiant qu'aucune élection n'est déjà en cours.
 func (s *Server) startElection() {
 
 	if s.electionState == types.Ann {
@@ -206,6 +218,7 @@ func (s *Server) startElection() {
 	s.electionState = types.Ann
 }
 
+// getElected retourne le numéro du processus élu.
 func (s *Server) getElected() int {
 	isRunning := <-s.electionStateChan
 	if !isRunning {
@@ -215,6 +228,7 @@ func (s *Server) getElected() int {
 	}
 }
 
+// getNextServer retourne le numéro du prochain serveur à qui envoyer un message.
 func (s *Server) getNextServer(current int) int {
 	if current == s.nbProcesses {
 		return 1
