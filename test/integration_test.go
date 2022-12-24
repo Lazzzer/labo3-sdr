@@ -85,7 +85,7 @@ func (tc *TestClient) RunElectionWithDownServer(t *testing.T) {
 
 	tc.sendCommand(string(cmd1), &srv1, t)
 
-	// add value 5 to srv3$
+	// add value 5 to srv3
 	val2 := 5
 	cmd2, err := json.Marshal(types.Command{
 		Type:  types.Add,

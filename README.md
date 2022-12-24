@@ -95,3 +95,55 @@ Usage of ./main:
 # Commande permettant de quitter le client
 quit
 ```
+
+# Les tests
+
+Les tests peuvent être lancés avec les commandes suivantes:
+
+```bash
+# A la racine du projet
+go test -race ./test/. -v
+
+# Si besoins, en vidant le cache
+go clean -testcache && go test -race ./test/. -v
+```
+
+Notre fichier de test comporte un `TestClient` et 3 serveurs de test (dont 1 down) composant le réseau, lancés dans la fonction `init()`. Le TestClient peut envoyer des commandes à un serveur de test et vérifier la string de réponse avec un résultat attendu.
+
+Seul un test est lancé, `TestElectionWithDownServers`, qui va faire dans l'ordre:
+
+- Ajouter une charge au serveur 1 et 3. A la fin de cette étape, le serveur 1 a une charge plus élevée que le serveur 3.
+- Demander une nouvelle élection au serveur 1
+- Demander au serveur 1 quel est le processus élu de la dernière élection. Comme il y a une élection en cours, le serveur répondra à la fin de l'élection. Le serveur répondra que le serveur 3 (avec le Processus P2) est élu.
+
+Ce test vérifie alors que l'élection peut se faire même en cas de panne avant une élection.
+
+![Tests](/docs/tests.png)
+
+## Procédure de tests manuels
+
+TODO
+
+## Implémentation
+
+### Le client
+
+Le client effectue une nouvelle connexion UDP à un serveur à chaque commande envoyée. Pour chaque commande, il attend une réponse du serveur et affiche le résultat dans la console. En cas de timeout, il notifie l'utilisateur que le serveur est down.
+
+Le client parse l'input en ligne de commande et crée un objet `Command` si l'input est valide. Il transforme ensuite cet objet en string JSON et l'envoie au serveur.
+
+Quitter un client avec CTRL+C ou en envoyant la commande `quit` ferme la connexion UDP en cours et arrête le client gracieusement.
+
+### Le serveur
+
+Au niveau des spécificités du serveur, ce dernier répond à chaque communication reçue, que ce soit par un `Acknowledgement` pour un `Message` inter-server, ou une simple string pour un `Command`.
+
+A part dans le cas d'une commande `ask`, le serveur envoie juste une réponse générique spécifiant que la commande a bien été reçue. Ainsi, nous pouvons mettre en place un timeout côté client pour savoir si le serveur est down.
+
+Lorsqu'un serveur ne répond pas à un `Message` inter-server, il est considéré comme down et l’émetteur envoie le message au serveur suivant dans la liste des serveurs.
+
+Ce système de timeout permet de gérer certains cas de panne de processus mais pas tous. En effet, il se peut qu'une élection puisse se bloquer lors de cas où une réception de message (que ce soit une annonce ou un résultat) a pu se faire (c'est-à-dire, avec envoi d'ack) juste avant que ce dernier ne tombe en panne et ne puisse transmettre l'information au prochain.
+
+### Points à améliorer
+
+Comme brièvement évoqué dans la partie serveur, il y a des scénarios où une panne peut s'avérer problématique lors d'une élection. Nous pourrions compléter l'algorithme d'élection pour qu'il puisse gérer ce genre de cas.
