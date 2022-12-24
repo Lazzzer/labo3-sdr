@@ -102,7 +102,7 @@ func (s *Server) handleRes(message *types.Message) {
 		return
 	}
 
-	if s.electionState == types.Res && s.elected != s.processNumber {
+	if s.electionState == types.Res && s.elected != message.Elected {
 		processes := append(make([]types.Process, 0), s.process)
 		messageToSend = types.Message{Type: types.Ann, Elected: -1, Processes: processes}
 		s.electionState = types.Ann
