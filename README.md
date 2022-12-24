@@ -156,7 +156,7 @@ Résultat obtenu:
 ![Test 2](/docs/test2.png) TODO: faire le screen avec les consoles
 
 ### Test n° 3
-Nous allons maintenant lancer les serveurs et le client en mode debug afin de les ralentir et de simuler un temps de traitement assez long. Nous lançons donc 3 serveurs et 2 clients. Nous ajoutons donc les mêmes charge qu'auparavant. Depuis le client1, nous demandons une nouvelle élection au serveur1. Une fois que le premier tour de serveur est terminé, nous demandons depuis le client2 une nouvelle élection au serveur2. La deuxième élection va donc attendre la fin de la première avant de commencer.
+Nous allons maintenant lancer les serveurs et le client en mode debug afin de les ralentir et de simuler un temps de traitement assez long. Nous lançons donc 3 serveurs et 2 clients. Nous ajoutons donc les mêmes charge qu'auparavant. Depuis le client1, nous demandons une nouvelle élection au serveur1. Une fois que le premier tour de serveur est terminé, nous demandons depuis le client2 une nouvelle élection au serveur2. La deuxième élection va juste être annulée car le serveur1 a déjà lancé une élection qui a fini le permier tour.
 
 ```bash
 # Input du client1
@@ -176,7 +176,7 @@ Résultat obtenu:
 ![Test 3](/docs/test3.png) TODO: faire le screen avec les consoles
 
 ### Test n° 4
-Nous allons lancer la même configuration que durant le test n° 3 mais cette fois-ci, nous allons lancer les deux élections de manière simultanée. Nous devrions obtenir, cette fois-ci, qu'un seul processus élu.
+Nous allons lancer la même configuration que durant le test n° 3 mais cette fois-ci, nous allons lancer les deux élections de manière simultanée. Les deux élections vont donc commencer par tourner en paralèlle puis la deuxième va être annulée.
 
 ```bash
 # Input du client1
