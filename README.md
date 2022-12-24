@@ -147,3 +147,5 @@ Ce système de timeout permet de gérer certains cas de panne de processus mais 
 ### Points à améliorer
 
 Comme brièvement évoqué dans la partie serveur, il y a des scénarios où une panne peut s'avérer problématique lors d'une élection. Nous pourrions compléter l'algorithme d'élection pour qu'il puisse gérer ce genre de cas.
+
+Autre point, nous utilisons deux fichiers `config.json` pour les serveurs et les clients qui sont identiques. Cela est principalement dû aux limitations imposées par `go:embed` qui nous permet de build le fichier dans l'exécutable. Nous pourrions alors soit fusionner les deux fichiers en remaniant notre approche avec le package `embed` soit rajouter des configurations spécifiques pour chaque élément afin de justifier des fichiers séparés.

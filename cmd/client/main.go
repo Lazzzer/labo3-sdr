@@ -18,7 +18,7 @@ import (
 
 //go:embed config.json
 var config string
-var DEBUG_DELAY = 20 // in seconds
+var DEBUG_DELAY = 30 // in seconds
 var timeoutDelay = 1 // in seconds
 
 // main est la méthode d'entrée du programme
