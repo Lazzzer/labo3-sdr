@@ -221,7 +221,7 @@ Résultat obtenu:
 
 ![Test 5](/docs/test5.png)
 
-### test n° 6
+### Test n° 6
 
 Nous allons lancer la même configuration que durant le test n° 3. Le client 1 va lancer une élection et juste après, le client 2 va ajouter une grande charge sur le serveur 2. De cette manière le serveur 2 aura la plus grande charge. Cependant, au démarrage de l'élection, le serveur 2 était celui avec la charge la plus faible. Il va donc être élu.
 
@@ -260,7 +260,7 @@ A part dans le cas d'une commande `ask`, le serveur envoie juste une réponse g�
 
 Lorsqu'un serveur ne répond pas à un `Message` inter-server, il est considéré comme down et l’émetteur envoie le message au serveur suivant dans la liste des serveurs.
 
-Ce système de timeout permet de gérer certains cas de panne de processus mais pas tous. En effet, il se peut qu'une élection puisse se bloquer lors de cas où une réception de message (que ce soit une annonce ou un résultat) a pu se faire (c'est-à-dire, avec envoi d'ack) juste avant que ce dernier ne tombe en panne et ne puisse transmettre l'information au prochain.
+Ce système de timeout permet de gérer certains cas de panne de processus mais pas tous. En effet, il se peut qu'une élection puisse se bloquer lors de cas où une réception de message (que ce soit une annonce ou un résultat) a pu se faire (c'est-à-dire, avec envoi d'ack) juste avant que le serveur ne tombe en panne et ne puisse transmettre l'information au prochain.
 
 ### Points à améliorer
 
