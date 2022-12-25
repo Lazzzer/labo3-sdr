@@ -123,6 +123,7 @@ Ce test vérifie alors que l'élection peut se faire même en cas de panne avant
 ## Procédure de tests manuels
 
 ### Test n° 1
+
 Durant ce test, nous allons simplement vérifier que l'élection se passe comme prévu. Pour ce faire, nous lançons 3 serveurs et 1 client. Nous ajoutons ensuite des charges sur les serveurs. Une charge de 30 sur le premier, 15 sur le 2ème et 35 sur le 3ème. Nous demandons ensuite une nouvelle élection au serveur 1 puis nous demandons au serveur 3 quel est le processus élu. Nous devrions obtenir le processus P2. En effet, ce dernier a la plus petite charge.
 
 ```bash
@@ -136,9 +137,10 @@ Durant ce test, nous allons simplement vérifier que l'élection se passe comme 
 
 Résultat obtenu:
 
-![Test 1](/docs/test1.png) TODO: faire le screen avec les consoles
+![Test 1](/docs/test1.png)
 
 ### Test n° 2
+
 Durant ce test, nous allons vérifier que l'élection se passe bien même si un serveur est down. Pour ce faire, nous lançons 3 serveurs et 1 client. Nous ajoutons ensuite des charges sur les serveurs. Une charge de 30 sur le premier, 15 sur le 2ème et 35 sur le 3ème. Logiquement le serveur 2 devrait être élu. Cependant nous allons simuler une panne sur ce serveur puis demander une élection au serveur 1 et demander le résultat au serveur 3. Nous devrions obtenir le processus P1. En effet, ce dernier a la plus petite charge après la panne du serveur 2.
 
 ```bash
@@ -156,6 +158,7 @@ Résultat obtenu:
 ![Test 2](/docs/test2.png) TODO: faire le screen avec les consoles
 
 ### Test n° 3
+
 Nous allons maintenant lancer les serveurs et le client en mode debug afin de les ralentir et de simuler un temps de traitement assez long. Nous lançons donc 3 serveurs et 2 clients. Nous ajoutons donc les mêmes charge qu'auparavant. Depuis le client1, nous demandons une nouvelle élection au serveur1. Une fois que le premier tour de serveur est terminé, nous demandons depuis le client2 une nouvelle élection au serveur2. La deuxième élection va juste être annulée car le serveur1 a déjà lancé une élection qui a fini le permier tour.
 
 ```bash
@@ -176,6 +179,7 @@ Résultat obtenu:
 ![Test 3](/docs/test3.png) TODO: faire le screen avec les consoles
 
 ### Test n° 4
+
 Nous allons lancer la même configuration que durant le test n° 3 mais cette fois-ci, nous allons lancer les deux élections de manière simultanée. Les deux élections vont donc commencer par tourner en paralèlle puis la deuxième va être annulée.
 
 ```bash
@@ -196,6 +200,7 @@ Résultat obtenu:
 ![Test 4](/docs/test4.png) TODO: faire le screen avec les consoles
 
 ### test n° 5
+
 Nous allons lancer la même configuration que durant le test n° 3. Le client1 va lancer une élection et juste après, le client2 va ajouter une grande charge sur le serveur2. De cette manière le serveur2 aura la plus grande charge. Cependant, au démarage de l'élection, le serveur2 était celui avec la charge la plus faible. Il va donc être élu.
 
 ```bash
